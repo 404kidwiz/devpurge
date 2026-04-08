@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# DevPurge - The cinematic, zero-bs cache sweeper for modern developers.
+
+VERSION="1.0.0"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../src" && pwd)"
+
+# Colors for UI
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}=======================================${NC}"
+echo -e "${GREEN}   DevPurge v${VERSION} - The OS Sweeper${NC}"
+echo -e "${BLUE}=======================================${NC}\n"
+
+# Load modules
+source "$DIR/modules/node.sh"
+source "$DIR/modules/system.sh"
+source "$DIR/modules/ai.sh"
+source "$DIR/modules/mac.sh"
+
+show_help() {
+  echo "Usage: devpurge [OPTIONS]"
+  echo ""
+  echo "Options:"
+  echo "  --all        Sweep everything (Node, System, AI, Mac)"
+  echo "  --node       Sweep npm, pnpm, node-gyp caches"
+  echo "  --system     Sweep homebrew, apt caches"
+  echo "  --ai         Sweep Claude, Ollama, Codex histories"
+  echo "  --mac        Sweep Xcode, Safari, App temporary data"
+  echo "  --install    Install as a weekly background daemon (macOS launchd)"
+  echo "  --uninstall  Remove the background daemon"
+  echo "  --help       Show this menu"
+  echo ""
+}
+
+install_daemon() {
+  bash "$DIR/../install.sh"
+}
+
+uninstall_daemon() {
+  launchctl unload ~/Library/LaunchAgents/com.devpurge.sweeper.plist 2>/dev/null
+  rm -f ~/Library/LaunchAgents/com.devpurge.sweeper.plist
+  echo -e "${GREEN}[✔] Daemon uninstalled. DevPurge will no longer run automatically.${NC}"
+}
+
+if [ $# -eq 0 ]; then
+  show_help
+  exit 0
+fi
+
+# Parse Arguments
+ran_something=false
+
+for arg in "$@"; do
+  case $arg in
+    --all)
+      sweep_node; sweep_system; sweep_ai; sweep_mac; ran_something=true
+      ;;
+    --node) sweep_node; ran_something=true ;;
+    --system) sweep_system; ran_something=true ;;
+    --ai) sweep_ai; ran_something=true ;;
+    --mac) sweep_mac; ran_something=true ;;
+    --install) install_daemon; ran_something=true ;;
+    --uninstall) uninstall_daemon; ran_something=true ;;
+    --help) show_help; exit 0 ;;
+    *) echo -e "${RED}Unknown option: $arg${NC}"; show_help; exit 1 ;;
+  esac
+done
+
+if [ "$ran_something" = true ]; then
+  echo -e "\n${GREEN}[✔] Sweep complete. Workspace optimized.${NC}"
+fi
