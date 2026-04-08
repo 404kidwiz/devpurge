@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # DevPurge - The cinematic, zero-bs cache sweeper for modern developers.
 
-VERSION="1.0.0"
+VERSION="2.0.0"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../src" && pwd)"
 
 # Colors for UI
@@ -11,29 +11,87 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}=======================================${NC}"
-echo -e "${GREEN}   DevPurge v${VERSION} - The OS Sweeper${NC}"
-echo -e "${BLUE}=======================================${NC}\n"
+# Core Engine
+export DRY_RUN=false
+source "$DIR/config.sh"
+source "$DIR/utils.sh"
 
 # Load modules
 source "$DIR/modules/node.sh"
 source "$DIR/modules/system.sh"
 source "$DIR/modules/ai.sh"
 source "$DIR/modules/mac.sh"
+source "$DIR/modules/docker.sh"
+source "$DIR/modules/lang.sh"
+source "$DIR/modules/git.sh"
 
 show_help() {
+  echo -e "${BLUE}=======================================${NC}"
+  echo -e "${GREEN}   DevPurge v${VERSION} - The OS Sweeper${NC}"
+  echo -e "${BLUE}=======================================${NC}"
   echo "Usage: devpurge [OPTIONS]"
   echo ""
   echo "Options:"
-  echo "  --all        Sweep everything (Node, System, AI, Mac)"
+  echo "  --dry-run    Calculate exactly how much space will be saved (No execution)."
+  echo "  --all        Sweep everything except ignored targets in config"
   echo "  --node       Sweep npm, pnpm, node-gyp caches"
   echo "  --system     Sweep homebrew, apt caches"
   echo "  --ai         Sweep Claude, Ollama, Codex histories"
   echo "  --mac        Sweep Xcode, Safari, App temporary data"
-  echo "  --install    Install as a weekly background daemon (macOS launchd)"
+  echo "  --docker     Sweep Docker orphaned artifacts"
+  echo "  --lang       Sweep Rust, Go, Python compiler caches"
+  echo "  --git        Garbage collect massive .git folders locally"
+  echo "  --install    Install as a weekly background daemon"
   echo "  --uninstall  Remove the background daemon"
   echo "  --help       Show this menu"
   echo ""
+  echo "Run 'devpurge' without arguments for the interactive menu."
+}
+
+run_if_allowed() {
+  local target_name=$1
+  local cmd_func=$2
+  
+  if [[ " $IGNORE_TARGETS " =~ " $target_name " ]]; then
+    echo -e "${RED}[IGNORED by Config] $target_name${NC}"
+  else
+    $cmd_func
+  fi
+}
+
+show_tui() {
+  echo -e "\n${BLUE}=======================================${NC}"
+  echo -e "${GREEN}   DevPurge v${VERSION} Interactive UI${NC}"
+  echo -e "${BLUE}=======================================${NC}\n"
+  echo "Press the number to execute, or (Q) to quit:"
+  echo "  [1] 🧹 Sweep All (Respects config overrides)"
+  echo "  [2] 📦 Node/Web Ecosystem"
+  echo "  [3] 🖥️  System (Brew/Apt)"
+  echo "  [4] 🧠 AI Agent Bloat"
+  echo "  [5] 🍎 macOS Specific"
+  echo "  [6] 🐳 Docker Volumes"
+  echo "  [7] 🦀 Rust/Python/Go"
+  echo "  [8] 🌲 Git Repositories"
+  echo "  [D] 🔍 Toggle Dry Run (Currently: $DRY_RUN)"
+  echo "  [Q] 🚪 Quit"
+  
+  read -rsn1 input
+  case $input in
+    1) run_if_allowed "node" sweep_node; run_if_allowed "system" sweep_system; run_if_allowed "ai" sweep_ai; run_if_allowed "mac" sweep_mac; run_if_allowed "docker" sweep_docker; run_if_allowed "lang" sweep_lang; run_if_allowed "git" sweep_git ;;
+    2) sweep_node ;;
+    3) sweep_system ;;
+    4) sweep_ai ;;
+    5) sweep_mac ;;
+    6) sweep_docker ;;
+    7) sweep_lang ;;
+    8) sweep_git ;;
+    [dD]) 
+      if [ "$DRY_RUN" = true ]; then DRY_RUN=false; else DRY_RUN=true; fi
+      clear && show_tui
+      ;;
+    [qQ]) echo -e "\nExiting."; exit 0 ;;
+    *) echo ""; show_tui ;;
+  esac
 }
 
 install_daemon() {
@@ -41,28 +99,54 @@ install_daemon() {
 }
 
 uninstall_daemon() {
-  launchctl unload ~/Library/LaunchAgents/com.devpurge.sweeper.plist 2>/dev/null
-  rm -f ~/Library/LaunchAgents/com.devpurge.sweeper.plist
-  echo -e "${GREEN}[✔] Daemon uninstalled. DevPurge will no longer run automatically.${NC}"
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    launchctl unload ~/Library/LaunchAgents/com.devpurge.sweeper.plist 2>/dev/null
+    rm -f ~/Library/LaunchAgents/com.devpurge.sweeper.plist
+  else
+    systemctl --user disable --now devpurge.timer devpurge.service 2>/dev/null
+    rm -f ~/.config/systemd/user/devpurge.*
+  fi
+  echo -e "${GREEN}[✔] Daemon uninstalled.${NC}"
 }
 
+# Pre-parse dry run
+for arg in "$@"; do
+  if [ "$arg" == "--dry-run" ]; then
+    DRY_RUN=true
+  fi
+done
+
 if [ $# -eq 0 ]; then
-  show_help
+  clear
+  show_tui
   exit 0
 fi
 
-# Parse Arguments
 ran_something=false
 
 for arg in "$@"; do
   case $arg in
+    --dry-run) ;; # already parsed
     --all)
-      sweep_node; sweep_system; sweep_ai; sweep_mac; ran_something=true
+      echo -e "\n${BLUE}=======================================${NC}"
+      echo -e "${GREEN}   DevPurge v${VERSION} Full Sweep${NC}"
+      echo -e "${BLUE}=======================================${NC}\n"
+      run_if_allowed "node" sweep_node
+      run_if_allowed "system" sweep_system
+      run_if_allowed "ai" sweep_ai
+      run_if_allowed "mac" sweep_mac
+      run_if_allowed "docker" sweep_docker
+      run_if_allowed "lang" sweep_lang
+      run_if_allowed "git" sweep_git
+      ran_something=true
       ;;
     --node) sweep_node; ran_something=true ;;
     --system) sweep_system; ran_something=true ;;
     --ai) sweep_ai; ran_something=true ;;
     --mac) sweep_mac; ran_something=true ;;
+    --docker) sweep_docker; ran_something=true ;;
+    --lang) sweep_lang; ran_something=true ;;
+    --git) sweep_git; ran_something=true ;;
     --install) install_daemon; ran_something=true ;;
     --uninstall) uninstall_daemon; ran_something=true ;;
     --help) show_help; exit 0 ;;
