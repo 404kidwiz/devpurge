@@ -3,13 +3,9 @@
 sweep_mac() {
   echo -e "${YELLOW}[macOS Apps] Sweeping platform caches...${NC}"
   
-  if [ -d ~/Library/Caches/com.apple.dt.Xcode ]; then
-    rm -rf ~/Library/Caches/com.apple.dt.Xcode/* 2>/dev/null
-    echo "  - Cleared Xcode Derived Data / Caches"
-  fi
-
-  rm -rf ~/Library/Caches/com.apple.Safari/* 2>/dev/null
-  rm -rf ~/Library/Caches/Google/Chrome/Default/Cache/* 2>/dev/null
-  rm -rf ~/Library/Caches/com.apple.bird/* 2>/dev/null
-  echo "  - Cleared Browser & iCloud temp caches"
+  execute_sweep_path "$HOME/Library/Developer/Xcode/DerivedData" "Cleared Xcode Derived Data"
+  execute_sweep_path "$HOME/Library/Developer/Xcode/Archives" "Cleared Xcode Archives"
+  execute_sweep_path "$HOME/Library/Developer/CoreSimulator/Caches" "Cleared iOS Simulator Caches"
+  execute_sweep_path "$HOME/Library/Caches/com.apple.Safari" "Cleared Safari Cache"
+  execute_sweep_path "$HOME/Library/Caches/Google/Chrome/Default/Cache" "Cleared Chrome Cache"
 }
