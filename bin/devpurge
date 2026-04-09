@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # DevPurge - The cinematic, zero-bs cache sweeper for modern developers.
 
-VERSION="2.0.0"
+VERSION="3.0.0"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../src" && pwd)"
 
 # Colors for UI
@@ -9,21 +9,32 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+CYAN='\033[0;36m'
+NC='\033[0m'
 
 # Core Engine
 export DRY_RUN=false
 source "$DIR/config.sh"
 source "$DIR/utils.sh"
 
-# Load modules
-source "$DIR/modules/node.sh"
-source "$DIR/modules/system.sh"
-source "$DIR/modules/ai.sh"
-source "$DIR/modules/mac.sh"
-source "$DIR/modules/docker.sh"
-source "$DIR/modules/lang.sh"
-source "$DIR/modules/git.sh"
+# Dynamic Plugin Architecture
+MODULES=()
+DESCRIPTIONS=()
+
+# Load all plugins organically
+for mod in "$DIR"/modules/*.sh; do
+  [ -e "$mod" ] || continue
+  source "$mod"
+  # Extract filename without extension for logic targeting
+  base_name=$(basename "$mod" .sh)
+  
+  # Scrape description header
+  desc=$(head -n 2 "$mod" | grep "# DESC:" | sed 's/# DESC: //')
+  if [ -z "$desc" ]; then desc="Custom Plugin ($base_name)"; fi
+  
+  MODULES+=("$base_name")
+  DESCRIPTIONS+=("$desc")
+done
 
 show_help() {
   echo -e "${BLUE}=======================================${NC}"
@@ -33,65 +44,76 @@ show_help() {
   echo ""
   echo "Options:"
   echo "  --dry-run    Calculate exactly how much space will be saved (No execution)."
-  echo "  --all        Sweep everything except ignored targets in config"
-  echo "  --node       Sweep npm, pnpm, node-gyp caches"
-  echo "  --system     Sweep homebrew, apt caches"
-  echo "  --ai         Sweep Claude, Ollama, Codex histories"
-  echo "  --mac        Sweep Xcode, Safari, App temporary data"
-  echo "  --docker     Sweep Docker orphaned artifacts"
-  echo "  --lang       Sweep Rust, Go, Python compiler caches"
-  echo "  --git        Garbage collect massive .git folders locally"
+  echo "  --all        Sweep everything (respects ignores & rescue_mode)"
+  for i in "${!MODULES[@]}"; do
+    printf "  --%-10s Sweep %s\n" "${MODULES[$i]}" "${DESCRIPTIONS[$i]}"
+  done
   echo "  --install    Install as a weekly background daemon"
   echo "  --uninstall  Remove the background daemon"
+  echo "  --update     Silently pull the latest version of DevPurge from GitHub"
   echo "  --help       Show this menu"
   echo ""
-  echo "Run 'devpurge' without arguments for the interactive menu."
+  echo "Run 'devpurge' natively to open the interactive TUI."
 }
 
 run_if_allowed() {
   local target_name=$1
-  local cmd_func=$2
-  
   if [[ " $IGNORE_TARGETS " =~ " $target_name " ]]; then
     echo -e "${RED}[IGNORED by Config] $target_name${NC}"
   else
-    $cmd_func
+    if type "sweep_$target_name" &>/dev/null; then
+      "sweep_$target_name"
+    else
+      echo -e "${RED}Error: Function sweep_$target_name not found in plugin!${NC}"
+    fi
   fi
+}
+
+self_update() {
+  echo -e "${CYAN}Checking for DevPurge updates...${NC}"
+  # Curl the installer pipe from GitHub to overwrite current instance
+  curl -sL https://raw.githubusercontent.com/404kidwiz/devpurge/main/install.sh | bash
+  # After exiting this func, the process will naturally exit with success.
 }
 
 show_tui() {
   echo -e "\n${BLUE}=======================================${NC}"
   echo -e "${GREEN}   DevPurge v${VERSION} Interactive UI${NC}"
   echo -e "${BLUE}=======================================${NC}\n"
-  echo "Press the number to execute, or (Q) to quit:"
-  echo "  [1] 🧹 Sweep All (Respects config overrides)"
-  echo "  [2] 📦 Node/Web Ecosystem"
-  echo "  [3] 🖥️  System (Brew/Apt)"
-  echo "  [4] 🧠 AI Agent Bloat"
-  echo "  [5] 🍎 macOS Specific"
-  echo "  [6] 🐳 Docker Volumes"
-  echo "  [7] 🦀 Rust/Python/Go"
-  echo "  [8] 🌲 Git Repositories"
+  
+  if [ "$RESCUE_MODE" = "true" ]; then
+    echo -e "  ⚠️  ${YELLOW}Rescue Mode is ON. Files will be routed to Trash Bin.${NC}\n"
+  fi
+
+  echo "Press the number/key to execute, or (Q) to quit:"
+  echo "  [A] 🧹 Sweep All (Respects config overrides)"
+  
+  # Dynamically list loaded plugins
+  counter=1
+  for i in "${!MODULES[@]}"; do
+    echo "  [$counter] 📦 ${DESCRIPTIONS[$i]}"
+    counter=$((counter+1))
+  done
+
+  echo "  -------------------------------------"
   echo "  [D] 🔍 Toggle Dry Run (Currently: $DRY_RUN)"
   echo "  [Q] 🚪 Quit"
   
   read -rsn1 input
-  case $input in
-    1) run_if_allowed "node" sweep_node; run_if_allowed "system" sweep_system; run_if_allowed "ai" sweep_ai; run_if_allowed "mac" sweep_mac; run_if_allowed "docker" sweep_docker; run_if_allowed "lang" sweep_lang; run_if_allowed "git" sweep_git ;;
-    2) sweep_node ;;
-    3) sweep_system ;;
-    4) sweep_ai ;;
-    5) sweep_mac ;;
-    6) sweep_docker ;;
-    7) sweep_lang ;;
-    8) sweep_git ;;
-    [dD]) 
-      if [ "$DRY_RUN" = true ]; then DRY_RUN=false; else DRY_RUN=true; fi
-      clear && show_tui
-      ;;
-    [qQ]) echo -e "\nExiting."; exit 0 ;;
-    *) echo ""; show_tui ;;
-  esac
+  
+  if [[ "$input" == "A" || "$input" == "a" ]]; then
+    for mod in "${MODULES[@]}"; do run_if_allowed "$mod"; done
+  elif [[ "$input" == "D" || "$input" == "d" ]]; then
+    if [ "$DRY_RUN" = true ]; then DRY_RUN=false; else DRY_RUN=true; fi
+    clear && show_tui
+  elif [[ "$input" == "Q" || "$input" == "q" ]]; then
+    echo -e "\nExiting."; exit 0
+  elif [[ "$input" =~ ^[0-9]+$ ]] && [ "$input" -gt 0 ] && [ "$input" -le "${#MODULES[@]}" ]; then
+    local target_idx=$((input-1))
+    run_if_allowed "${MODULES[$target_idx]}"
+  else
+    echo ""; show_tui
+  fi
 }
 
 install_daemon() {
@@ -123,6 +145,7 @@ if [ $# -eq 0 ]; then
 fi
 
 ran_something=false
+ran_background=false
 
 for arg in "$@"; do
   case $arg in
@@ -131,29 +154,39 @@ for arg in "$@"; do
       echo -e "\n${BLUE}=======================================${NC}"
       echo -e "${GREEN}   DevPurge v${VERSION} Full Sweep${NC}"
       echo -e "${BLUE}=======================================${NC}\n"
-      run_if_allowed "node" sweep_node
-      run_if_allowed "system" sweep_system
-      run_if_allowed "ai" sweep_ai
-      run_if_allowed "mac" sweep_mac
-      run_if_allowed "docker" sweep_docker
-      run_if_allowed "lang" sweep_lang
-      run_if_allowed "git" sweep_git
+      for mod in "${MODULES[@]}"; do run_if_allowed "$mod"; done
       ran_something=true
+      ran_background=true # Signals to send notification
       ;;
-    --node) sweep_node; ran_something=true ;;
-    --system) sweep_system; ran_something=true ;;
-    --ai) sweep_ai; ran_something=true ;;
-    --mac) sweep_mac; ran_something=true ;;
-    --docker) sweep_docker; ran_something=true ;;
-    --lang) sweep_lang; ran_something=true ;;
-    --git) sweep_git; ran_something=true ;;
     --install) install_daemon; ran_something=true ;;
     --uninstall) uninstall_daemon; ran_something=true ;;
+    --update) self_update; ran_something=true ;;
     --help) show_help; exit 0 ;;
+    --*) 
+      # Dynamic flag checking
+      mod_target="${arg#--}"
+      found=false
+      for mod in "${MODULES[@]}"; do
+        if [ "$mod" == "$mod_target" ]; then
+          run_if_allowed "$mod"
+          found=true
+          ran_something=true
+          break
+        fi
+      done
+      
+      if [ "$found" = false ]; then
+         echo -e "${RED}Unknown option or plugin: $arg${NC}"; show_help; exit 1
+      fi
+      ;;
     *) echo -e "${RED}Unknown option: $arg${NC}"; show_help; exit 1 ;;
   esac
 done
 
 if [ "$ran_something" = true ]; then
   echo -e "\n${GREEN}[✔] Sweep complete. Workspace optimized.${NC}"
+  # Ping OS notifications if this was an automated sweep (to avoid annoying the user on targeted runs)
+  if [ "$ran_background" = true ] && [ "$DRY_RUN" = false ]; then
+    notify_desktop "Automated cache sweep successful. Workspace optimized."
+  fi
 fi

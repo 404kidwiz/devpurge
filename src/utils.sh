@@ -19,8 +19,19 @@ execute_sweep_path() {
       local size=$(du -sh "$target_path" 2>/dev/null | awk '{print $1}')
       [ -n "$size" ] && log_dry "$size" "$description" || log_dry "N/A" "$description"
     else
-      rm -rf "$target_path" 2>/dev/null
-      log_action "$description"
+      if [ "$RESCUE_MODE" = "true" ]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+          mkdir -p ~/.Trash
+          mv "$target_path" ~/.Trash/ 2>/dev/null
+        else
+          mkdir -p ~/.local/share/Trash/files
+          mv "$target_path" ~/.local/share/Trash/files/ 2>/dev/null
+        fi
+        log_action "[RESCUED TO TRASH] $description"
+      else
+        rm -rf "$target_path" 2>/dev/null
+        log_action "$description"
+      fi
     fi
   fi
 }
@@ -32,11 +43,20 @@ execute_sweep_cmd() {
 
   if command -v $cmd_check >/dev/null 2>&1; then
     if [ "$DRY_RUN" = true ]; then
-      # Usually can't calculate exact free space for arbitrary commands easily without running them. 
       log_dry "CMD" "$description (Command pending)"
     else
       eval "$cmd_run" >/dev/null 2>&1
       log_action "$description"
     fi
+  fi
+}
+
+# Background Notification Engine
+notify_desktop() {
+  local message="$1"
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    osascript -e "display notification \"$message\" with title \"DevPurge\"" 2>/dev/null || true
+  elif command -v notify-send >/dev/null 2>&1; then
+    notify-send "DevPurge" "$message" 2>/dev/null || true
   fi
 }
