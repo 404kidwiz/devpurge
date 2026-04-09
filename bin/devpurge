@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -eo pipefail
 # DevPurge - The cinematic, zero-bs cache sweeper for modern developers.
 
 VERSION="3.0.0"
@@ -71,9 +72,23 @@ run_if_allowed() {
 
 self_update() {
   echo -e "${CYAN}Checking for DevPurge updates...${NC}"
-  # Curl the installer pipe from GitHub to overwrite current instance
-  curl -sL https://raw.githubusercontent.com/404kidwiz/devpurge/main/install.sh | bash
-  # After exiting this func, the process will naturally exit with success.
+  local tmp_install="/tmp/devpurge_install.sh"
+  
+  # Download to temp file
+  curl -sL https://raw.githubusercontent.com/404kidwiz/devpurge/main/install.sh -o "$tmp_install" || {
+    echo -e "${RED}Failed to download update.${NC}"
+    exit 1
+  }
+
+  # Verify signature (ensure it is the DevPurge installer before running)
+  if grep -q "DevPurge V2 OS Daemon" "$tmp_install" || grep -q "Installing DevPurge" "$tmp_install"; then
+    bash "$tmp_install"
+    rm -f "$tmp_install"
+  else
+    echo -e "${RED}Security check failed: Downloaded script signature is invalid. Aborting update.${NC}"
+    rm -f "$tmp_install"
+    exit 1
+  fi
 }
 
 show_tui() {

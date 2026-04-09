@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
+set -eo pipefail
 CONFIG_FILE="$HOME/.devpurge.json"
 
 parse_config() {
   local key=$1
   if [ -f "$CONFIG_FILE" ]; then
     if command -v python3 >/dev/null 2>&1; then
-      python3 -c "import sys, json; data=json.load(open('$CONFIG_FILE')); res=data.get('$key', ''); print(' '.join(res) if isinstance(res, list) else str(res).lower())" 2>/dev/null
+      python3 -c "import sys, json; data=json.load(open('$CONFIG_FILE')); res=data.get('$key', ''); print(' '.join(res) if isinstance(res, list) else str(res).lower())" 2>/dev/null || true
     fi
   fi
 }

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -eo pipefail
 # DESC: AI Agent Bloat
 
 sweep_ai() {
@@ -8,8 +9,8 @@ sweep_ai() {
     execute_sweep_path "$HOME/.ollama/tmp" "Ollama Temp Files"
   else
     if [ -f ~/.claude/history.jsonl ]; then
-      tail -n 1000 ~/.claude/history.jsonl > ~/.claude/history_tmp.jsonl
-      mv ~/.claude/history_tmp.jsonl ~/.claude/history.jsonl
+      tail -n 1000 ~/.claude/history.jsonl > ~/.claude/history_tmp.jsonl || true
+      mv ~/.claude/history_tmp.jsonl ~/.claude/history.jsonl || true
       log_action "Truncated Claude Code history to last 1K lines"
     fi
     execute_sweep_path "$HOME/.ollama/tmp" "Cleared Ollama temp files"
