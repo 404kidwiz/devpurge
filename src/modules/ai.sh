@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
+# DESC: AI Agent Bloat
 
 sweep_ai() {
   echo -e "${YELLOW}[AI Tools] Sweeping historical bloat...${NC}"
-  
   if [ "$DRY_RUN" = true ]; then
     execute_sweep_path "$HOME/.claude/history.jsonl" "Claude Code History"
     execute_sweep_path "$HOME/.ollama/tmp" "Ollama Temp Files"

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
+# DESC: System (Brew/Apt)
 
 sweep_system() {
   echo -e "${YELLOW}[System Manager] Sweeping caches...${NC}"
-  
   if [ "$DRY_RUN" = true ]; then
     if command -v brew >/dev/null 2>&1; then
       local size=$(brew cleanup -n 2>/dev/null | grep 'would free' | awk '{print $7$8}' | head -n 1)
