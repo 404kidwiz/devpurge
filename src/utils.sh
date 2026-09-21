@@ -7,7 +7,7 @@ log_action() {
 }
 
 log_dry() {
-  printf "  ${BLUE}[%5s]${NC} %s\n" "$1" "$2"
+  printf '  %b[%5s]%b %s\n' "$BLUE" "$1" "$NC" "$2"
 }
 
 # Core sweep executor (Paths)
@@ -17,20 +17,26 @@ execute_sweep_path() {
 
   if [ -d "$target_path" ] || [ -f "$target_path" ]; then
     if [ "$DRY_RUN" = true ]; then
-      local size=$(du -sh "$target_path" 2>/dev/null | awk '{print $1}')
-      [ -n "$size" ] && log_dry "$size" "$description" || log_dry "N/A" "$description"
+      local size
+      size=$(du -sh "$target_path" | awk '{print $1}') || return 1
+      log_dry "$size" "$description (directory size, not guaranteed savings)"
     else
       if [ "$RESCUE_MODE" = "true" ]; then
+        local trash_root rescue_dir
         if [[ "$OSTYPE" == "darwin"* ]]; then
-          mkdir -p ~/.Trash
-          mv "$target_path" ~/.Trash/ 2>/dev/null || true
+          trash_root="$HOME/.Trash"
         else
-          mkdir -p ~/.local/share/Trash/files
-          mv "$target_path" ~/.local/share/Trash/files/ 2>/dev/null || true
+          trash_root="$HOME/.local/share/Trash/files"
         fi
+        mkdir -p "$trash_root" || return 1
+        rescue_dir=$(mktemp -d "$trash_root/devpurge.XXXXXX") || return 1
+        mv "$target_path" "$rescue_dir/" || return 1
         log_action "[RESCUED TO TRASH] $description"
       else
-        rm -rf "$target_path" 2>/dev/null || true
+        if ! rm -rf -- "$target_path"; then
+          log_action "[FAILED] $description" >&2
+          return 1
+        fi
         log_action "$description"
       fi
     fi
@@ -47,10 +53,18 @@ execute_sweep_cmd() {
     if [ "$DRY_RUN" = true ]; then
       log_dry "CMD" "$description (Command pending)"
     else
-      # Safely execute the array instead of using eval
-      "${cmd_args[@]}" >/dev/null 2>&1 || true
+      if [ "$RESCUE_MODE" = true ]; then
+        log_action "[SKIPPED] $description: command cannot be rescued to Trash"
+        return 0
+      fi
+      if ! "${cmd_args[@]}"; then
+        log_action "[FAILED] $description" >&2
+        return 1
+      fi
       log_action "$description"
     fi
+  else
+    log_action "[SKIPPED] $description: $cmd_check is not installed"
   fi
 }
 
