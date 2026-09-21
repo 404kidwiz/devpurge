@@ -2,7 +2,7 @@
 set -eo pipefail
 # DevPurge - The cinematic, zero-bs cache sweeper for modern developers.
 
-VERSION="3.1.0"
+VERSION="3.2.0"
 # Resolve the installed symlink before locating the adjacent source tree.
 SCRIPT_PATH="${BASH_SOURCE[0]}"
 while [ -L "$SCRIPT_PATH" ]; do
@@ -55,6 +55,8 @@ show_help() {
   echo "Usage: devpurge [OPTIONS]"
   echo ""
   echo "Options:"
+  echo "  --scan       Read-only size, activity, and cleanup eligibility report"
+  echo "  --scan --json  Machine-readable report (cannot mix with cleanup flags)"
   echo "  --dry-run    Preview targets; directory sizes are not guaranteed savings"
   echo "  --all        Clean caches only: uv, node, lang, mac, system"
   echo "               AI history, Docker and Git require explicit module flags"
@@ -96,7 +98,7 @@ show_tui() {
     echo -e "  ${YELLOW}Rescue Mode: paths go to Trash; command cleanup is skipped.${NC}\n"
   fi
 
-  echo "Press the number/key to execute, or (Q) to quit:"
+  echo "Enter a number/key and press Return, or (Q) to quit:"
   echo "  [A] 🧹 Clean caches only (Respects config overrides)"
   echo "  AI, Docker and Git entries can remove history or persistent data."
   
@@ -111,7 +113,7 @@ show_tui() {
   echo "  [D] 🔍 Toggle Dry Run (Currently: $DRY_RUN)"
   echo "  [Q] 🚪 Quit"
   
-  read -rsn1 input
+  read -r input
   
   if [[ "$input" == "A" || "$input" == "a" ]]; then
     for mod in "${CACHE_MODULES[@]}"; do run_if_allowed "$mod"; done
@@ -146,10 +148,14 @@ uninstall_daemon() {
 # Validate every option before any action, including options after a module.
 BACKGROUND=false
 MAINTENANCE=false
+SCAN=false
+JSON_REPORT=false
 for arg in "$@"; do
   case "$arg" in
     --dry-run) DRY_RUN=true ;;
     --background) BACKGROUND=true ;;
+    --scan) SCAN=true ;;
+    --json) JSON_REPORT=true ;;
     --install|--uninstall) MAINTENANCE=true ;;
     --all|--help) ;;
     --*)
@@ -162,6 +168,21 @@ for arg in "$@"; do
     *) echo "Unknown option: $arg" >&2; exit 1 ;;
   esac
 done
+if [ "$JSON_REPORT" = true ] && [ "$SCAN" = false ]; then
+  echo "--json requires --scan." >&2
+  exit 1
+fi
+if [ "$SCAN" = true ]; then
+  for arg in "$@"; do
+    case "$arg" in
+      --scan|--json|--dry-run) ;;
+      *) echo "--scan cannot be combined with cleanup or maintenance options." >&2; exit 1 ;;
+    esac
+  done
+  report_args=()
+  if [ "$JSON_REPORT" = true ]; then report_args+=(--json); fi
+  exec python3 "$DIR/report.py" "${report_args[@]}"
+fi
 if [ "$MAINTENANCE" = true ] && [ "$#" -ne 1 ]; then
   echo "Install/uninstall must be run alone; dry-run never installs or uninstalls." >&2
   exit 1

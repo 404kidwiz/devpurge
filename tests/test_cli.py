@@ -127,7 +127,29 @@ class CliTests(unittest.TestCase):
         self.assertEqual(self.run_cli("--install", binary=binary).returncode, 0)
         self.assertEqual(before, (self.home / ".devpurge.json").read_bytes())
         self.assertEqual(self.logged(), "")
+        scan = self.run_cli("--scan", "--json", binary=binary)
+        self.assertEqual(scan.returncode, 0, scan.stderr)
+        self.assertTrue(json.loads(scan.stdout)["read_only"])
         self.assertFalse((self.home / "Library/LaunchAgents/com.devpurge.sweeper.plist").exists())
+
+    def test_scan_json_is_read_only_and_cannot_mix_with_cleanup(self):
+        marker = self.marker(".cache/uv/sentinel")
+        result = self.run_cli("--scan", "--json")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        data = json.loads(result.stdout)
+        self.assertTrue(data["read_only"])
+        self.assertTrue(marker.exists())
+        for args in (("--node", "--scan"), ("--scan", "--install"), ("--json", "--node")):
+            self.assertNotEqual(self.run_cli(*args).returncode, 0)
+        self.assertEqual(self.logged(), "pnpm store path\n")
+
+    def test_new_modules_are_not_part_of_all(self):
+        marker = self.marker("Library/Caches/Comet/Default/Cache/sentinel")
+        installer = self.marker("Library/Caches/@opencode-aidesktop-updater/pending/update.zip")
+        result = self.run_cli("--all")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(marker.exists())
+        self.assertTrue(installer.exists())
 
     def test_dry_run_never_installs_or_uninstalls(self):
         for flag in ("--install", "--uninstall"):

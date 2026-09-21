@@ -68,6 +68,14 @@ execute_sweep_cmd() {
   fi
 }
 
+# Activity-aware manual cleanup groups
+run_targeted_cleanup() {
+  local report_args=(--category "$1")
+  if [ "$DRY_RUN" = false ]; then report_args+=(--execute); fi
+  if [ "$RESCUE_MODE" = true ]; then report_args+=(--rescue); fi
+  python3 "$DIR/report.py" "${report_args[@]}"
+}
+
 # Background Notification Engine
 notify_desktop() {
   local message="$1"
