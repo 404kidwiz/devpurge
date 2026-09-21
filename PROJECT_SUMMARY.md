@@ -4,7 +4,7 @@ Updated: 2026-09-20
 
 ## Current behavior
 
-Bash CLI v3.1.0 with eight modules. Startup resolves installed symlinks and reads
+Bash CLI v3.2.0 with eleven modules. Startup resolves installed symlinks and reads
 module descriptions correctly. `--all` is cache-only (uv, Node, languages, macOS,
 system); AI history, Docker and Git require explicit selection. Xcode Archives
 are excluded. Interactive mode starts with dry-run enabled. Invalid options and
@@ -17,14 +17,35 @@ The old standalone-script updater was removed; reinstall from a reviewed checkou
 
 ## Verification
 
-- 12 isolated Python unittest cases passed on this Mac, including installed symlink,
+- 25 isolated Python unittest cases passed on this Mac, including installed symlink,
   fake scheduler, dry-run, config, rescue, exclusions, and command failure behavior.
 - ShellCheck passed for the executable, installer, helpers, and all modules.
 - Bash syntax checks and `git diff --check` passed.
 - Installed CLI help worked at `~/.local/bin/devpurge`.
 - CI now includes the regression suite; remote CI has not been run for these changes.
-- Graft refreshed; it currently indexes the Python tests, not the Bash implementation.
+- Graft refreshed; it indexes the Python report and tests, not the Bash implementation.
 - Linux scheduler has not been tested on a Linux host. No real scheduler enabled here.
+
+## Scan and targeted cleanup
+
+`--scan` and `--scan --json` inventory supported locations without cleanup. Each
+entry reports size (or unknown), activity, eligibility, and the reason. Scans
+cannot be combined with cleanup flags. Sizes are not promised reclaimable bytes.
+
+Manual `--browsers`, `--installers`, and `--oldstores` groups are excluded from
+`--all` and background jobs. The Python helper rechecks eligibility before each
+action, retaining active/unknown owners, newer updates, symlinks, and mounted or
+open targets. Electron cleanup removes only verified individual ZIPs. Older pnpm
+stores use a matching already-installed native manager; unmatched stores remain.
+An app starting between the final check and deletion remains a possible race.
+Interactive selections now require Return to support double-digit module numbers.
+
+Installed CLI scan completed successfully on this Mac. It retained BrowserClaw
+and Granola activity, newer OpenCode updates, and the unmatched pnpm v3 store.
+JSON report: `~/.devpurge/logs/latest-scan.json`. Automatic sweeping remains false;
+no LaunchAgent is installed. No live cleanup was executed during feature verification.
+Tests cover scan isolation, installed scanning, activity rechecks, native-store
+matching, version checks, preservation of unrelated updater payloads, and rescue.
 
 ## Local cleanup evidence
 

@@ -1,7 +1,7 @@
 # DevPurge
 
 A Bash CLI for targeted developer-cache cleanup on macOS and Linux.
-Python 3 is required when reading the optional JSON configuration and by the installer.
+Python 3 is required for scanning, targeted cleanup, JSON configuration, and installation.
 
 ## Run from this checkout
 
@@ -16,6 +16,30 @@ path sizes are not guaranteed reclaimed space (hard links, APFS snapshots, and
 partially pruned stores affect actual savings). Command targets report pending
 operations; Homebrew and Docker use their own read-only reports.
 
+## Scan first
+
+```bash
+devpurge --scan
+devpurge --scan --json
+devpurge --dry-run --installers --browsers --oldstores
+```
+
+Scanning reports supported cache locations, stored size, activity, and eligibility;
+it never cleans anything and cannot be combined with cleanup flags. It is a targeted
+inventory, not a full-disk duplicate or large-file scanner. Unknown sizes stay unknown;
+reported sizes are not guaranteed savings.
+
+The three manual groups below recheck eligibility immediately before each action.
+Process/open-file inspection requires `ps` and `lsof`; macOS also uses `hdiutil`.
+Failed activity checks retain targets. Browser and installer detection supports
+known macOS app/cache layouts. Pending newer updates, unidentified versions/apps,
+symlinks, running owners, open files, and mounted images are retained. Close relevant
+apps before cleanup; an app starting during cleanup is still a possible race.
+
+After reviewing the preview, omit `--dry-run` to execute the selected groups.
+Rescue mode moves supported files to Trash, but skips native pnpm pruning.
+These groups are excluded from `--all` and scheduled sweeps.
+
 ## Modules
 
 | Flag | Targets |
@@ -25,13 +49,16 @@ operations; Homebrew and Docker use their own read-only reports.
 | `--lang` | pip3, Cargo registry download cache, rustup temporary files, Go build/module caches |
 | `--mac` | Xcode DerivedData, simulator caches, configured Safari/Chrome cache paths; **never Xcode Archives** |
 | `--system` | Homebrew cleanup; noninteractive APT cache cleanup on Linux |
+| `--browsers` | Inactive Comet, BrowserClaw, BrowserOS, and Chrome HTTP/code cache paths; preserves profiles |
+| `--installers` | Identified Sparkle staging directories and individual Electron updater ZIPs at least one day old, with versions no newer than the installed app |
+| `--oldstores` | Older pnpm stores, using an already-installed matching pnpm version for native pruning; unmatched stores retained |
 | `--all` | Only `uv`, `node`, `lang`, `mac`, and `system` |
 | `--ai` | **Explicit only:** truncates Claude history to 1,000 lines and deletes Ollama temporary files |
 | `--docker` | **Explicit only:** `docker system prune -af --volumes`; can delete container data |
 | `--git` | **Explicit only:** Git GC with default retention in repositories discovered under Desktop, Documents, Projects, Developer |
 
 Close relevant builds/apps before clearing their caches. Future builds and installs
-may need downloads. pnpm pruning only targets the active store, not older versions.
+may need downloads. `--node` prunes only the active pnpm store; `--oldstores` handles supported older stores.
 uv pruning respects its cache lock and can wait when other uv processes are active;
 do not force it while those processes use the cache. AI history truncation also
 requires closing Claude sessions first.
