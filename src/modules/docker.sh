@@ -6,13 +6,16 @@ sweep_docker() {
   echo -e "${YELLOW}[Docker] Sweeping container bloat...${NC}"
   if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
     if [ "$DRY_RUN" = true ]; then
-      local size=$(docker system df | grep 'Images\|Containers\|Local Volumes' | awk '{sum+=$4} END {print sum"B"}' || true)
-      [ -n "$size" ] && log_dry "$size" "Prunable Docker Resources" || log_dry "0B" "Docker Clean"
+      docker system df
     else
-      docker system prune -af --volumes >/dev/null 2>&1 || true
-      log_action "Pruned orphaned Docker volumes, images, and networks"
+      execute_sweep_cmd docker "Pruned Docker resources including unused anonymous volumes" docker system prune -af --volumes
     fi
   else
-    if [ "$DRY_RUN" = true ]; then log_dry "N/A" "Docker not running"; fi
+    if [ "$DRY_RUN" = true ]; then
+      log_dry "N/A" "Docker not running; reclaimable space unknown"
+    else
+      echo "Docker is unavailable; cleanup was not performed." >&2
+      return 1
+    fi
   fi
 }

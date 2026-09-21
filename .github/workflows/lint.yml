@@ -13,4 +13,6 @@ jobs:
       - name: Run shellcheck
         uses: ludeeus/action-shellcheck@master
         with:
-          scandir: './bin ./src'
+          scandir: '.'
+      - name: Run isolated cleanup regression tests
+        run: python3 -m unittest discover -s tests -v

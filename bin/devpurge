@@ -2,35 +2,46 @@
 set -eo pipefail
 # DevPurge - The cinematic, zero-bs cache sweeper for modern developers.
 
-VERSION="3.0.0"
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../src" && pwd)"
+VERSION="3.1.0"
+# Resolve the installed symlink before locating the adjacent source tree.
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+while [ -L "$SCRIPT_PATH" ]; do
+  SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+  SCRIPT_PATH="$(readlink "$SCRIPT_PATH")"
+  [[ "$SCRIPT_PATH" = /* ]] || SCRIPT_PATH="$SCRIPT_DIR/$SCRIPT_PATH"
+done
+DIR="$(cd "$(dirname "$SCRIPT_PATH")/../src" && pwd)"
 
 # Colors for UI
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
 NC='\033[0m'
 
 # Core Engine
 export DRY_RUN=false
+# shellcheck source=src/config.sh
 source "$DIR/config.sh"
+# shellcheck source=src/utils.sh
 source "$DIR/utils.sh"
 
 # Dynamic Plugin Architecture
 MODULES=()
 DESCRIPTIONS=()
+CACHE_MODULES=(uv node lang mac system)
 
 # Load all plugins organically
 for mod in "$DIR"/modules/*.sh; do
   [ -e "$mod" ] || continue
+  # Plugins are checked individually; their paths are discovered at runtime.
+  # shellcheck source=/dev/null
   source "$mod"
   # Extract filename without extension for logic targeting
   base_name=$(basename "$mod" .sh)
   
   # Scrape description header
-  desc=$(head -n 2 "$mod" | grep "# DESC:" | sed 's/# DESC: //')
+  desc=$(sed -n 's/^# DESC: //p' "$mod")
   if [ -z "$desc" ]; then desc="Custom Plugin ($base_name)"; fi
   
   MODULES+=("$base_name")
@@ -44,14 +55,15 @@ show_help() {
   echo "Usage: devpurge [OPTIONS]"
   echo ""
   echo "Options:"
-  echo "  --dry-run    Calculate exactly how much space will be saved (No execution)."
-  echo "  --all        Sweep everything (respects ignores & rescue_mode)"
+  echo "  --dry-run    Preview targets; directory sizes are not guaranteed savings"
+  echo "  --all        Clean caches only: uv, node, lang, mac, system"
+  echo "               AI history, Docker and Git require explicit module flags"
   for i in "${!MODULES[@]}"; do
     printf "  --%-10s Sweep %s\n" "${MODULES[$i]}" "${DESCRIPTIONS[$i]}"
   done
-  echo "  --install    Install as a weekly background daemon"
+  echo "  --install    Install the CLI only; no background cleanup"
+  echo "  --background Scheduled cache cleanup (requires automated_sweep: true)"
   echo "  --uninstall  Remove the background daemon"
-  echo "  --update     Silently pull the latest version of DevPurge from GitHub"
   echo "  --help       Show this menu"
   echo ""
   echo "Run 'devpurge' natively to open the interactive TUI."
@@ -59,35 +71,19 @@ show_help() {
 
 run_if_allowed() {
   local target_name=$1
-  if [[ " $IGNORE_TARGETS " =~ " $target_name " ]]; then
+  if [[ " $IGNORE_TARGETS " == *" $target_name "* ]]; then
     echo -e "${RED}[IGNORED by Config] $target_name${NC}"
   else
+    if [ "$RESCUE_MODE" = true ] && [[ "$target_name" =~ ^(ai|docker|git)$ ]]; then
+      log_action "[SKIPPED] $target_name cannot be rescued to Trash"
+      return 0
+    fi
     if type "sweep_$target_name" &>/dev/null; then
       "sweep_$target_name"
     else
       echo -e "${RED}Error: Function sweep_$target_name not found in plugin!${NC}"
+      return 1
     fi
-  fi
-}
-
-self_update() {
-  echo -e "${CYAN}Checking for DevPurge updates...${NC}"
-  local tmp_install="/tmp/devpurge_install.sh"
-  
-  # Download to temp file
-  curl -sL https://raw.githubusercontent.com/404kidwiz/devpurge/main/install.sh -o "$tmp_install" || {
-    echo -e "${RED}Failed to download update.${NC}"
-    exit 1
-  }
-
-  # Verify signature (ensure it is the DevPurge installer before running)
-  if grep -q "DevPurge V2 OS Daemon" "$tmp_install" || grep -q "Installing DevPurge" "$tmp_install"; then
-    bash "$tmp_install"
-    rm -f "$tmp_install"
-  else
-    echo -e "${RED}Security check failed: Downloaded script signature is invalid. Aborting update.${NC}"
-    rm -f "$tmp_install"
-    exit 1
   fi
 }
 
@@ -97,11 +93,12 @@ show_tui() {
   echo -e "${BLUE}=======================================${NC}\n"
   
   if [ "$RESCUE_MODE" = "true" ]; then
-    echo -e "  ⚠️  ${YELLOW}Rescue Mode is ON. Files will be routed to Trash Bin.${NC}\n"
+    echo -e "  ${YELLOW}Rescue Mode: paths go to Trash; command cleanup is skipped.${NC}\n"
   fi
 
   echo "Press the number/key to execute, or (Q) to quit:"
-  echo "  [A] 🧹 Sweep All (Respects config overrides)"
+  echo "  [A] 🧹 Clean caches only (Respects config overrides)"
+  echo "  AI, Docker and Git entries can remove history or persistent data."
   
   # Dynamically list loaded plugins
   counter=1
@@ -117,7 +114,7 @@ show_tui() {
   read -rsn1 input
   
   if [[ "$input" == "A" || "$input" == "a" ]]; then
-    for mod in "${MODULES[@]}"; do run_if_allowed "$mod"; done
+    for mod in "${CACHE_MODULES[@]}"; do run_if_allowed "$mod"; done
   elif [[ "$input" == "D" || "$input" == "d" ]]; then
     if [ "$DRY_RUN" = true ]; then DRY_RUN=false; else DRY_RUN=true; fi
     clear && show_tui
@@ -146,14 +143,47 @@ uninstall_daemon() {
   echo -e "${GREEN}[✔] Daemon uninstalled.${NC}"
 }
 
-# Pre-parse dry run
+# Validate every option before any action, including options after a module.
+BACKGROUND=false
+MAINTENANCE=false
 for arg in "$@"; do
-  if [ "$arg" == "--dry-run" ]; then
-    DRY_RUN=true
+  case "$arg" in
+    --dry-run) DRY_RUN=true ;;
+    --background) BACKGROUND=true ;;
+    --install|--uninstall) MAINTENANCE=true ;;
+    --all|--help) ;;
+    --*)
+      found=false
+      for mod in "${MODULES[@]}"; do
+        if [ "$arg" = "--$mod" ]; then found=true; break; fi
+      done
+      if [ "$found" = false ]; then echo "Unknown option: $arg" >&2; exit 1; fi
+      ;;
+    *) echo "Unknown option: $arg" >&2; exit 1 ;;
+  esac
+done
+if [ "$MAINTENANCE" = true ] && [ "$#" -ne 1 ]; then
+  echo "Install/uninstall must be run alone; dry-run never installs or uninstalls." >&2
+  exit 1
+fi
+if [ "$BACKGROUND" = true ]; then
+  for arg in "$@"; do
+    case "$arg" in
+      --background|--all|--dry-run) ;;
+      *) echo "Background jobs may only run --all (cache cleanup)." >&2; exit 1 ;;
+    esac
+  done
+  if [ "$AUTO_SWEEP" != true ]; then
+    echo "Scheduled cleanup disabled by automated_sweep configuration."
+    exit 0
   fi
+fi
+for arg in "$@"; do
+  if [ "$arg" = --help ]; then show_help; exit 0; fi
 done
 
 if [ $# -eq 0 ]; then
+  DRY_RUN=true
   clear
   show_tui
   exit 0
@@ -164,18 +194,17 @@ ran_background=false
 
 for arg in "$@"; do
   case $arg in
-    --dry-run) ;; # already parsed
+    --dry-run|--background) ;; # already parsed
     --all)
       echo -e "\n${BLUE}=======================================${NC}"
-      echo -e "${GREEN}   DevPurge v${VERSION} Full Sweep${NC}"
+      echo -e "${GREEN}   DevPurge v${VERSION} Cache Sweep${NC}"
       echo -e "${BLUE}=======================================${NC}\n"
-      for mod in "${MODULES[@]}"; do run_if_allowed "$mod"; done
+      for mod in "${CACHE_MODULES[@]}"; do run_if_allowed "$mod"; done
       ran_something=true
       ran_background=true # Signals to send notification
       ;;
-    --install) install_daemon; ran_something=true ;;
-    --uninstall) uninstall_daemon; ran_something=true ;;
-    --update) self_update; ran_something=true ;;
+    --install) install_daemon; exit 0 ;;
+    --uninstall) uninstall_daemon; exit 0 ;;
     --help) show_help; exit 0 ;;
     --*) 
       # Dynamic flag checking
@@ -199,9 +228,13 @@ for arg in "$@"; do
 done
 
 if [ "$ran_something" = true ]; then
-  echo -e "\n${GREEN}[✔] Sweep complete. Workspace optimized.${NC}"
+  if [ "$DRY_RUN" = true ]; then
+    echo -e "\n${GREEN}[✔] Preview complete. No cleanup performed.${NC}"
+  else
+    echo -e "\n${GREEN}[✔] Requested cleanup finished; review any skipped targets above.${NC}"
+  fi
   # Ping OS notifications if this was an automated sweep (to avoid annoying the user on targeted runs)
   if [ "$ran_background" = true ] && [ "$DRY_RUN" = false ]; then
-    notify_desktop "Automated cache sweep successful. Workspace optimized."
+    notify_desktop "Cache cleanup finished. Review logs for skipped targets."
   fi
 fi
