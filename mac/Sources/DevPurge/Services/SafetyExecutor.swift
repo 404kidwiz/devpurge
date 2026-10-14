@@ -63,6 +63,9 @@ public final class SafetyExecutor: @unchecked Sendable {
         }
 
         let url = URL(fileURLWithPath: current.path)
+        if let reason = ProtectedPaths.reason(for: url, home: scanner.homeDirectory) {
+            return ("REFUSED: protected path (\(reason))", false)
+        }
         let fm = FileManager.default
         guard fm.fileExists(atPath: url.path) else {
             return ("SKIPPED: file no longer exists", false)

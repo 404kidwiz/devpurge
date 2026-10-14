@@ -16,6 +16,11 @@ execute_sweep_path() {
   local description="$2"
 
   if [ -d "$target_path" ] || [ -f "$target_path" ]; then
+    local protected
+    if ! protected=$(python3 "$DIR/safety.py" "$target_path"); then
+      log_action "[REFUSED] $description: protected path (${protected:-check failed})" >&2
+      return 1
+    fi
     if [ "$DRY_RUN" = true ]; then
       local size
       size=$(du -sh "$target_path" | awk '{print $1}') || return 1
