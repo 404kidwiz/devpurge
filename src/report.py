@@ -283,6 +283,15 @@ def measure(target):
     return target
 
 
+def _protected_reason(path, home):
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    try:
+        from safety import protected_reason
+    finally:
+        sys.path.pop(0)
+    return protected_reason(path, home)
+
+
 def cleanup(inventory, target, rescue=False):
     # Regenerate eligibility immediately before each action; no saved plan is executable.
     current = next((t for t in inventory.collect(target.category) if t.path == target.path), None)
@@ -294,6 +303,9 @@ def cleanup(inventory, target, rescue=False):
         subprocess.run(current.command, cwd=inventory.home, check=True)
         return 'PRUNED'
     path = Path(current.path)
+    reason = _protected_reason(path, inventory.home)
+    if reason:
+        return 'REFUSED: protected path (' + reason + ')'
     if rescue:
         trash = inventory.home / '.Trash'
         trash.mkdir(exist_ok=True)

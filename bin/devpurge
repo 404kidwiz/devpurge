@@ -66,6 +66,7 @@ show_help() {
   done
   echo "  --install    Install the CLI only; no background cleanup"
   echo "  --background Scheduled cache cleanup (requires automated_sweep: true)"
+  echo "  --yes        Confirm --docker without the typed 'prune docker' prompt"
   echo "  --uninstall  Remove the background daemon"
   echo "  --help       Show this menu"
   echo ""
@@ -159,6 +160,7 @@ for arg in "$@"; do
     --json) JSON_REPORT=true ;;
     --install|--uninstall) MAINTENANCE=true ;;
     --all|--help|--gui) ;;
+    --yes) export DEVPURGE_YES=true ;;
     --*)
       found=false
       for mod in "${MODULES[@]}"; do
@@ -222,7 +224,7 @@ ran_background=false
 
 for arg in "$@"; do
   case $arg in
-    --dry-run|--background) ;; # already parsed
+    --dry-run|--background|--yes) ;; # already parsed
     --all)
       echo -e "\n${BLUE}=======================================${NC}"
       echo -e "${GREEN}   DevPurge v${VERSION} Cache Sweep${NC}"
