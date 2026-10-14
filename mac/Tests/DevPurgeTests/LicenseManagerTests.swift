@@ -173,4 +173,33 @@ final class LicenseManagerTests: XCTestCase {
         XCTAssertFalse(TrialGuard(freeCleanups: 3, used: 3).canClean(licensed: false))
         XCTAssertTrue(TrialGuard(freeCleanups: 3, used: 3).canClean(licensed: true))
     }
+    @MainActor
+    func testUnforcedValidateWithin24HoursMakesNoNetworkCall() async {
+        let store = InMemoryLicenseStore([
+            .licenseKey: "KEY-123",
+            .instanceID: "inst-1",
+            .lastValidated: iso.string(from: Date().addingTimeInterval(-2 * 3_600))
+        ])
+        let http = MockHTTP(["validate": .json(200, #"{"valid":false,"error":"should not be called"}"#)])
+        let manager = LicenseManager(config: config, store: store, http: http)
+        XCTAssertTrue(manager.status.isActive)
+        let status = await manager.validate()
+        XCTAssertTrue(status.isActive)
+        XCTAssertEqual(http.calls.count, 0, "unforced validate within 24h must not hit the network")
+        XCTAssertEqual(store.read(.licenseKey), "KEY-123")
+    }
+
+    @MainActor
+    func testValidateWithWrongProductRevokesLicense() async {
+        let store = licensedStore(daysAgo: 2)
+        let body = #"{"valid":true,"license_key":{"status":"active"},"meta":{"store_id":11,"product_id":999}}"#
+        let http = MockHTTP(["validate": .json(200, body)])
+        let manager = LicenseManager(config: config, store: store, http: http)
+        let status = await manager.validate(force: true)
+        XCTAssertFalse(status.isActive)
+        if case .invalid = status {} else { XCTFail("expected .invalid, got \(status)") }
+        XCTAssertNil(store.read(.licenseKey))
+        XCTAssertNil(store.read(.instanceID))
+        XCTAssertEqual(http.calls.map(\.endpoint), ["validate"])
+    }
 }
