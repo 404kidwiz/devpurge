@@ -1,0 +1,30 @@
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+
+# macOS system files
+.DS_Store
+
+# Swift build directory
+mac/.build/
+.build/
+
+# Application and package build outputs
+DevPurge.app/
+*.dmg
+dist_staging/
+
+# Local logs, agent/editor config and Python caches (may contain personal paths)
+logs/
+opencode.json
+__pycache__/
+*.pyc
+dist/
+
+# Never commit credentials or signing material
+.env
+.env.*
+*.pem
+*.p12
+*.p8
+*.cer
+*.mobileprovision
