@@ -2,7 +2,7 @@
 set -eo pipefail
 # DevPurge - The cinematic, zero-bs cache sweeper for modern developers.
 
-VERSION="3.2.0"
+VERSION="3.3.0"
 # Resolve the installed symlink before locating the adjacent source tree.
 SCRIPT_PATH="${BASH_SOURCE[0]}"
 while [ -L "$SCRIPT_PATH" ]; do
@@ -55,6 +55,7 @@ show_help() {
   echo "Usage: devpurge [OPTIONS]"
   echo ""
   echo "Options:"
+  echo "  --gui        Open the local graphical storage dashboard"
   echo "  --scan       Read-only size, activity, and cleanup eligibility report"
   echo "  --scan --json  Machine-readable report (cannot mix with cleanup flags)"
   echo "  --dry-run    Preview targets; directory sizes are not guaranteed savings"
@@ -157,7 +158,7 @@ for arg in "$@"; do
     --scan) SCAN=true ;;
     --json) JSON_REPORT=true ;;
     --install|--uninstall) MAINTENANCE=true ;;
-    --all|--help) ;;
+    --all|--help|--gui) ;;
     --*)
       found=false
       for mod in "${MODULES[@]}"; do
@@ -167,6 +168,12 @@ for arg in "$@"; do
       ;;
     *) echo "Unknown option: $arg" >&2; exit 1 ;;
   esac
+done
+for arg in "$@"; do
+  if [ "$arg" = --gui ]; then
+    if [ "$#" -ne 1 ]; then echo "--gui must be run alone." >&2; exit 1; fi
+    exec python3 "$DIR/gui.py"
+  fi
 done
 if [ "$JSON_REPORT" = true ] && [ "$SCAN" = false ]; then
   echo "--json requires --scan." >&2
