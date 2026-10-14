@@ -3,6 +3,36 @@
 A Bash CLI for targeted developer-cache cleanup on macOS and Linux.
 Python 3 is required for scanning, targeted cleanup, JSON configuration, and installation.
 
+## Graphical interface
+
+```bash
+devpurge --gui
+# Or from this checkout:
+bash bin/devpurge --gui
+```
+
+The dashboard opens in your default browser. Keep the terminal open; press Ctrl+C
+there to stop the server. If `devpurge` is not on PATH, use
+`~/.local/bin/devpurge --gui`. You can also double-click `DevPurge.command` in this
+checkout from Finder.
+
+1. Click **Scan storage**. Scanning changes no files.
+2. Filter by **Eligible**, inspect the paths and reasons, and select individual locations.
+3. Optionally choose **Move files to Trash**. This does not free space until you
+   empty Trash yourself; native pnpm pruning cannot use this mode.
+4. Click **Review selection**, check the exact paths and mode, then confirm.
+5. Read the per-item results and scan again for current sizes.
+
+The GUI cleans only eligible browser caches, identified old installers, and supported
+older pnpm stores. Other developer caches are visible for review but remain CLI-only.
+It honors ignored groups and enforced rescue mode, rechecks activity before each
+cleanup, and requires a new scan after execution. Previews expire after five minutes.
+
+The server binds only to `127.0.0.1` on a random port, requires a session token and
+same-origin requests for API operations, and serves no external assets. It creates
+no scheduled jobs. Closing the browser tab alone does not stop the server.
+Python 3.9 or newer is required for the GUI; no additional Python packages are needed.
+
 ## Run from this checkout
 
 ```bash

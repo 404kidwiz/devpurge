@@ -130,6 +130,9 @@ class CliTests(unittest.TestCase):
         scan = self.run_cli("--scan", "--json", binary=binary)
         self.assertEqual(scan.returncode, 0, scan.stderr)
         self.assertTrue(json.loads(scan.stdout)["read_only"])
+        installed = self.home / ".local/lib/devpurge/src"
+        for asset in ("gui.py", "gui_model.py", "web/index.html", "web/app.js", "web/style.css"):
+            self.assertTrue((installed / asset).is_file(), asset)
         self.assertFalse((self.home / "Library/LaunchAgents/com.devpurge.sweeper.plist").exists())
 
     def test_scan_json_is_read_only_and_cannot_mix_with_cleanup(self):
@@ -139,7 +142,7 @@ class CliTests(unittest.TestCase):
         data = json.loads(result.stdout)
         self.assertTrue(data["read_only"])
         self.assertTrue(marker.exists())
-        for args in (("--node", "--scan"), ("--scan", "--install"), ("--json", "--node")):
+        for args in (("--node", "--scan"), ("--scan", "--install"), ("--json", "--node"), ("--gui", "--node"), ("--gui", "--dry-run")):
             self.assertNotEqual(self.run_cli(*args).returncode, 0)
         self.assertEqual(self.logged(), "pnpm store path\n")
 

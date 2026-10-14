@@ -1,10 +1,10 @@
 # DevPurge project summary
 
-Updated: 2026-09-20
+Updated: 2026-09-21
 
 ## Current behavior
 
-Bash CLI v3.2.0 with eleven modules. Startup resolves installed symlinks and reads
+Bash CLI v3.3.0 with eleven modules. Startup resolves installed symlinks and reads
 module descriptions correctly. `--all` is cache-only (uv, Node, languages, macOS,
 system); AI history, Docker and Git require explicit selection. Xcode Archives
 are excluded. Interactive mode starts with dry-run enabled. Invalid options and
@@ -17,14 +17,39 @@ The old standalone-script updater was removed; reinstall from a reviewed checkou
 
 ## Verification
 
-- 25 isolated Python unittest cases passed on this Mac, including installed symlink,
+- 37 isolated Python unittest cases passed on this Mac, including installed symlink,
   fake scheduler, dry-run, config, rescue, exclusions, and command failure behavior.
 - ShellCheck passed for the executable, installer, helpers, and all modules.
 - Bash syntax checks and `git diff --check` passed.
 - Installed CLI help worked at `~/.local/bin/devpurge`.
 - CI now includes the regression suite; remote CI has not been run for these changes.
-- Graft refreshed; it indexes the Python report and tests, not the Bash implementation.
+- Graft refreshed; it indexes the Python GUI/report/tests and frontend JavaScript, not Bash.
 - Linux scheduler has not been tested on a Linux host. No real scheduler enabled here.
+
+## Graphical interface
+
+`devpurge --gui` opens a local browser dashboard. `DevPurge.command` launches it
+from Finder in this checkout. The GUI offers a disk summary, live scan, filtering,
+search, selection, a review dialog, optional Trash mode, and per-item results.
+It only cleans the three guarded manual groups; other locations are informational.
+UI direction and scope are in DESIGN.md and PRODUCT.md.
+
+The Python standard-library server binds to loopback on a random port. API calls
+require an exact Host, same Origin, and a per-process session token. Assets are
+local and routes fixed. Requests are serialized. Cleanup uses opaque scan-derived
+IDs and a single-use preview expiring after five minutes. Ignored groups, rescue
+configuration, and activity are rechecked before actions. Closing the terminal
+stops the server; closing the tab alone does not.
+
+Verification: 12 GUI controller/HTTP tests plus the 25 existing tests pass. Tests
+cover temporary-fixture cleanup, unselected-file preservation, partial failures,
+stale/expired plans, config changes, CSRF rejection and operation serialization.
+Installed `devpurge --gui` launch and live browser scanning, filtering, selection,
+preview and cancellation worked;
+keyboard focus and 320/768/1024/1440px layouts were checked, with no browser errors observed.
+Light/dark views were inspected; desktop browser emulation is not a physical-device
+or screen-reader certification. No live cleanup was executed during GUI validation.
+Independent read-only review found no actionable issues. Remote CI was not run.
 
 ## Scan and targeted cleanup
 
@@ -128,11 +153,116 @@ registrations and were retained. Browser/MCP profiles, model files, and installe
 runtimes were retained. The final cache pass removed these targets after checking
 for active Swift/Xcode processes and open files:
 
-- /Users/you/Library/Caches/electron
-- /Users/you/Library/Caches/org.swift.swiftpm/artifacts
-- /Users/you/Library/Caches/org.swift.swiftpm/repositories
+- ~/Library/Caches/electron
+- ~/Library/Caches/org.swift.swiftpm/artifacts
+- ~/Library/Caches/org.swift.swiftpm/repositories
 
 Available disk space rose from 195,012,980 to 195,202,724 KiB
 (185.3 MiB observed gain); available space was 186.16 GiB.
 Further large reductions require selecting installed tooling, models, Docker
 images, or project artifacts for removal, rather than repeating routine pruning.
+
+## Native macOS Application & Commercial Distribution
+
+Updated: 2026-09-21
+
+### 1. Pure Native Swift Engine and App Bundle
+A standalone native macOS application was built in `mac/Sources/DevPurge` using Swift 6
+and SwiftUI. It produces a self-contained `DevPurge.app` (~1.3 MB) with zero Python or
+third-party runtime dependencies:
+- Direct Foundation and AppKit integration: volume capacity inspection via `statvfs`
+  and `URLResourceKey`, process and open-file inventory via `NSWorkspace`, `ps`, and `lsof`.
+- Native macOS Trash integration: `FileManager.default.trashItem` moves files to
+  macOS Trash with Finder "Put Back" capability and sound.
+- Design fidelity: Implements the limestone (`#f5f3ed`) and pine-green (`#275941`)
+  palette in light mode, charcoal (`#202622`) in dark mode, matching DESIGN.md.
+- Responsive layout: Adapts smoothly from 620px minimum width up to 4K displays.
+  The storage metrics header automatically adapts from a 3-column divided desk into
+  a compact stacked flow on narrow viewports.
+
+### 2. Advanced Feature Set Implemented
+- **macOS Menu Bar Companion Mode** (`MenuBarPopoverView.swift` / `MenuBarExtra`):
+  Lives in the macOS menu bar with real-time volume free capacity, meter bar, scanned/eligible
+  counts, a 1-click "Scan Now" button, and an "Open Dashboard" button.
+- **Visual Storage Breakdown Bar** (`StorageBreakdownBarView.swift`):
+  A proportional, color-coded stacked bar across categories (Browsers, Installers,
+  Package Stores, Tooling & Review) with an itemized gigabyte legend.
+- **Real-Time Streaming Scan** (`AsyncStream<Target>` in `TargetScanner.swift`):
+  Targets stream into the UI list progressively as each directory is discovered and measured,
+  eliminating wait times during scans.
+- **Quick Look & Finder Integration** (`TargetRowView.swift`):
+  Hover action buttons for "Reveal in Finder" and "Preview", plus right-click context menu
+  options for Reveal, Copy Path, and Whitelisting.
+- **Interactive Whitelisting ("Always Ignore in Config")**:
+  Right-clicking an item writes its category directly into `~/.devpurge.json` via
+  `DevPurgeConfig.swift`, marks the targets as `.ignored`, and deselects them.
+- **APFS Snapshot Detection** (`APFSSnapshotInspector.swift`):
+  Detects local Time Machine APFS snapshots via `tmutil listlocalsnapshots /` and displays
+  an explanatory notice clarifying that deleted blocks may be retained by macOS until flushed.
+- **Lemon Squeezy License Manager** (`LicenseManager.swift` & `LicenseActivationView.swift`):
+  Securely stores and retrieves license keys in the macOS Keychain (`Security.framework`).
+  Validates online via Lemon Squeezy API (`POST /v1/licenses/activate`). Includes instant
+  offline developer activation for test keys prefixed with `DEVPURGE-DEV-` or `TEST-`.
+- **Closed Beta Protection & Time-Bomb** (`BetaExpiryGuard.swift`):
+  Enforces a 45-day beta trial window with a header status pill; upon expiration, locks
+  destructive operations to prevent obsolete test builds from circulating indefinitely.
+
+### 3. Packaging and Installer
+- Built-in squircle application icon (`AppIcon.icns`, 1024x1024) generated via
+  `scripts/generate_app_icon.py`.
+- Automated build pipeline: `scripts/build_mac_app.sh` compiles the release binary,
+  constructs `DevPurge.app`, registers LaunchServices, and applies local code signing.
+- Automated DMG generator: `scripts/package_dmg.sh` produces `DevPurge-3.3.0.dmg` (~808 KB)
+  with a drag-and-drop link to `/Applications`.
+- `DevPurge.command` launches `DevPurge.app` directly from Finder if built.
+
+### 4. Verification
+- **Swift Unit Tests**: 7 test cases passed (`swift test`, 0.056s):
+  - `testAPFSSnapshotInspectorParsing`
+  - `testLicenseManagerDeveloperKey`
+  - `testConfigDefaultsAndIgnore`
+  - `testBetaExpiryGuard`
+  - `testAppVersionComparison`
+  - `testDiskSpace`
+  - `testTargetModel`
+- **Python Regression Suite**: All 37 test cases passed (`python3 -m unittest discover -s tests`).
+- Executable runtime and Menu Bar companion tested on host Mac without errors.
+
+---
+
+## Next Steps & Launch Playbook
+
+### Path 1: Project Hygiene & Sanity Check
+1. **Git Cleanup**:
+   Update `.gitignore` to exclude `mac/.build/`, `*.dmg`, `DevPurge.app/`, and `.DS_Store`
+   so local build artifacts are never accidentally committed.
+2. **Local Validation**:
+   - Run `open DevPurge.app`.
+   - Inspect the Menu Bar icon (`d/`) in the top macOS status bar.
+   - Click the header **License** pill and activate with `DEVPURGE-DEV-TEST`.
+   - Perform a scan and verify the visual breakdown bar and Finder reveal actions.
+
+### Path 2: Closed Beta & Commercial Sales Setup
+1. **Lemon Squeezy / Gumroad Store Setup**:
+   - Create a product: *DevPurge Lifetime License* ($19–$29).
+   - Enable **License Keys** under product settings.
+   - Point the buy link in `LicenseActivationView.swift` to the live store URL.
+2. **Apple Developer ID & Notarization**:
+   - Enroll in the Apple Developer Program ($99/year).
+   - Obtain a `Developer ID Application` certificate.
+   - Add `xcrun notarytool` submission into `scripts/package_dmg.sh` to allow
+     Gatekeeper-free distribution of `DevPurge-3.3.0.dmg`.
+
+### Path 3: Marketing & Distribution Assets
+1. **Landing Page**:
+   Create a single-page landing site matching DESIGN.md (warm limestone and pine green)
+   featuring key value propositions, a demo GIF/video, and checkout integration.
+2. **Release Channels**:
+   - Distribute the DMG privately to initial beta testers.
+   - Prepare a Homebrew Cask formula (`brew install --cask devpurge`) for easy developer installs.
+
+### Path 4: Future Roadmap Enhancements
+1. **System Threshold Notifications**:
+   Add background storage monitoring that notifies the user if caches exceed 20 GB.
+2. **Deep Module Expansion**:
+   Add support for Gradle (`~/.gradle/caches`), Android SDK caches, and HuggingFace models.
