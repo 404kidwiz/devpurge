@@ -42,10 +42,8 @@ public final class DevPurgeViewModel: ObservableObject {
         self.executor = executor ?? SafetyExecutor(scanner: scanner)
         self.rescueMode = config.rescueMode
 
-        if BetaExpiryGuard.isExpired {
-            self.statusMessage = BetaExpiryGuard.expiredNotice
-            self.isStatusError = true
-        }
+        let license = licenseManager
+        Task { await license.validate() }
     }
 
     public var filteredTargets: [Target] {
@@ -154,9 +152,10 @@ public final class DevPurgeViewModel: ObservableObject {
     }
 
     public func prepareReview() {
-        guard !BetaExpiryGuard.isExpired else {
-            statusMessage = BetaExpiryGuard.expiredNotice
+        guard licenseManager.canClean else {
+            statusMessage = TrialGuard.lockedNotice
             isStatusError = true
+            isLicenseSheetPresented = true
             return
         }
         guard !selectedTargetIDs.isEmpty else { return }
@@ -164,8 +163,8 @@ public final class DevPurgeViewModel: ObservableObject {
     }
 
     public func executeCleanup() {
-        guard !BetaExpiryGuard.isExpired else {
-            statusMessage = BetaExpiryGuard.expiredNotice
+        guard licenseManager.canClean else {
+            statusMessage = TrialGuard.lockedNotice
             isStatusError = true
             return
         }
@@ -186,6 +185,7 @@ public final class DevPurgeViewModel: ObservableObject {
             self.isCleaning = false
 
             let successful = results.filter { $0.isSuccess }.count
+            if successful > 0 { self.licenseManager.recordTrialCleanup() }
             self.statusMessage = "Cleanup finished. \(successful) of \(results.count) items processed."
         }
     }

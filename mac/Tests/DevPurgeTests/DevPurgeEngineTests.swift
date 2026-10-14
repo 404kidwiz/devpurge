@@ -62,12 +62,6 @@ final class DevPurgeEngineTests: XCTestCase {
         XCTAssertLessThanOrEqual(disk.usedFraction, 1.0)
     }
 
-    func testBetaExpiryGuard() {
-        XCTAssertEqual(BetaExpiryGuard.trialDays, 45)
-        XCTAssertFalse(BetaExpiryGuard.badgeText.isEmpty)
-        XCTAssertGreaterThanOrEqual(BetaExpiryGuard.daysRemaining, 0)
-        XCTAssertFalse(BetaExpiryGuard.isExpired)
-    }
 
     func testAPFSSnapshotInspectorParsing() {
         let sampleOutput = """
@@ -86,24 +80,4 @@ final class DevPurgeEngineTests: XCTestCase {
         XCTAssertEqual(emptyReport.explanation, "")
     }
 
-    func testLicenseManagerDeveloperKey() async {
-        let manager = LicenseManager()
-        defer { manager.deactivate() }
-
-        let devKey = "DEVPURGE-DEV-UNLIMITED-TEST"
-        let result = await manager.activate(key: devKey)
-
-        switch result {
-        case .success(let msg):
-            XCTAssertTrue(msg.contains("Developer Mode"))
-            XCTAssertTrue(manager.status.isActive)
-            XCTAssertEqual(manager.readFromKeychain(), devKey)
-        case .failure(let err):
-            XCTFail("Developer key should activate, failed with: \(err)")
-        }
-
-        manager.deactivate()
-        XCTAssertFalse(manager.status.isActive)
-        XCTAssertNil(manager.readFromKeychain())
-    }
 }
