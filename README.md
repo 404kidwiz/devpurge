@@ -1,5 +1,23 @@
 # DevPurge
 
+**Reclaim gigabytes of developer caches without deleting anything you'll miss.**
+
+Scan first, review every path, and DevPurge skips anything that's running or open.
+It covers uv, npm/pnpm, pip, Cargo, Go, Xcode, Homebrew and stale app-updater
+downloads, and it never touches your home folders, `.git` directories, Keychains
+or Xcode Archives. No network, no telemetry.
+
+- **DevPurge CLI + local GUI:** free and open source (MIT).
+- **DevPurge for Mac:** native menu-bar app. Scanning is free and includes 3 free
+  cleanups; then **$19 one-time** for 2 Macs ([details](#devpurge-for-mac)).
+
+```bash
+git clone https://github.com/404kidwiz/devpurge && cd devpurge
+bash bin/devpurge --scan          # read-only inventory
+bash bin/devpurge --dry-run --all # preview
+bash bin/devpurge --all           # clean caches
+```
+
 A Bash CLI for targeted developer-cache cleanup on macOS and Linux.
 Python 3 is required for scanning, targeted cleanup, JSON configuration, and installation.
 
@@ -84,7 +102,7 @@ These groups are excluded from `--all` and scheduled sweeps.
 | `--oldstores` | Older pnpm stores, using an already-installed matching pnpm version for native pruning; unmatched stores retained |
 | `--all` | Only `uv`, `node`, `lang`, `mac`, and `system` |
 | `--ai` | **Explicit only:** truncates Claude history to 1,000 lines and deletes Ollama temporary files |
-| `--docker` | **Explicit only:** `docker system prune -af --volumes`; can delete container data |
+| `--docker` | **Explicit only:** `docker system prune -af --volumes`; can delete container data. Asks you to type `prune docker` (or pass `--yes`) |
 | `--git` | **Explicit only:** Git GC with default retention in repositories discovered under Desktop, Documents, Projects, Developer |
 
 Close relevant builds/apps before clearing their caches. Future builds and installs
@@ -154,3 +172,28 @@ shellcheck bin/devpurge install.sh src/config.sh src/utils.sh src/modules/*.sh
 
 Tests use temporary home directories and fake package managers: no real caches
 or scheduler jobs are touched. Linux scheduling still requires platform testing.
+
+## Safety guarantees
+
+Every deletion, whether from the CLI, GUI or Mac app, is checked against a hard denylist:
+`/`, your home folder and its parents, `~/Desktop`, `~/Documents`, `~/Downloads`,
+`~/Projects`, `~/Developer`, `~/Library`, anything inside a `.git` directory,
+Keychains and Xcode Archives. Symlinks are resolved first. Refused paths are
+reported and stop the run. See `src/safety.py` and `tests/test_safety.py`.
+
+## DevPurge for Mac
+
+The native SwiftUI app (`mac/`) adds a menu-bar companion, streaming scans,
+Quick Look, Trash with Finder "Put Back", and a storage breakdown.
+
+- **Free:** unlimited scans and reports, plus 3 cleanups.
+- **$19 one-time** (launch week $12): unlimited cleanup on up to 2 Macs.
+  Sold through Lemon Squeezy, which is the merchant of record, with a 14-day refund window.
+- Licensing contacts Lemon Squeezy only to activate, validate (at most daily) or
+  deactivate. It works offline for 14 days, and network errors never revoke a license.
+
+## License
+
+The CLI, GUI, tests and scripts are under the [MIT License](LICENSE). The Mac app
+in `mac/` is proprietary; see [mac/LICENSE-EULA.md](mac/LICENSE-EULA.md).
+Release steps are in [docs/RELEASING.md](docs/RELEASING.md).
