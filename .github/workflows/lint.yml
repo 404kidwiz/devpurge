@@ -1,5 +1,5 @@
-name: ShellCheck Lint
-on: 
+name: CI
+on:
   push:
     branches: [ main ]
   pull_request:
@@ -16,3 +16,15 @@ jobs:
           scandir: '.'
       - name: Run isolated cleanup regression tests
         run: python3 -m unittest discover -s tests -v
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python regression tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Swift build and tests
+        working-directory: mac
+        run: |
+          swift build -c release
+          swift test
