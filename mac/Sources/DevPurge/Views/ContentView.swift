@@ -2,6 +2,7 @@ import SwiftUI
 
 public struct ContentView: View {
     @ObservedObject var viewModel: DevPurgeViewModel
+    @ObservedObject private var license = LicenseManager.shared
 
     public init(viewModel: DevPurgeViewModel = DevPurgeViewModel()) {
         self.viewModel = viewModel
@@ -84,14 +85,14 @@ public struct ContentView: View {
                     .foregroundColor(Theme.dynamicInk)
             }
 
-            // Beta Expiration Badge
-            Text(BetaExpiryGuard.badgeText)
+            // Trial / license badge
+            Text(license.badgeText)
                 .font(Theme.monoFont(size: 10))
                 .fontWeight(.medium)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(BetaExpiryGuard.isExpired ? Theme.dynamicWarnBg : Theme.dynamicSoft)
-                .foregroundColor(BetaExpiryGuard.isExpired ? Theme.dynamicWarn : Theme.dynamicAccent)
+                .background(!license.canClean ? Theme.dynamicWarnBg : Theme.dynamicSoft)
+                .foregroundColor(!license.canClean ? Theme.dynamicWarn : Theme.dynamicAccent)
                 .cornerRadius(12)
 
             // License Status / Activation Trigger
@@ -420,12 +421,12 @@ public struct ContentView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 9)
-                .background(viewModel.selectedTargetIDs.isEmpty || BetaExpiryGuard.isExpired ? Theme.dynamicLine : Theme.dynamicAccent)
-                .foregroundColor(viewModel.selectedTargetIDs.isEmpty || BetaExpiryGuard.isExpired ? Theme.dynamicMuted : Theme.dynamicOnAccent)
+                .background(viewModel.selectedTargetIDs.isEmpty ? Theme.dynamicLine : Theme.dynamicAccent)
+                .foregroundColor(viewModel.selectedTargetIDs.isEmpty ? Theme.dynamicMuted : Theme.dynamicOnAccent)
                 .cornerRadius(6)
             }
             .buttonStyle(.plain)
-            .disabled(viewModel.selectedTargetIDs.isEmpty || viewModel.isCleaning || BetaExpiryGuard.isExpired)
+            .disabled(viewModel.selectedTargetIDs.isEmpty || viewModel.isCleaning)
         }
     }
 

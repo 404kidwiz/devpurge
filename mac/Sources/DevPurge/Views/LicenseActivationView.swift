@@ -56,9 +56,10 @@ public struct LicenseActivationView: View {
 
                     HStack {
                         Button("Deactivate License") {
-                            licenseManager.deactivate()
-                            message = "License deactivated on this Mac."
-                            isError = false
+                            Task {
+                                message = await licenseManager.deactivate()
+                                isError = false
+                            }
                         }
                         .buttonStyle(.plain)
                         .font(Theme.bodyFont(size: 12))
@@ -81,7 +82,7 @@ public struct LicenseActivationView: View {
             } else {
                 // Unactivated Input State
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("Enter your license key from your Lemon Squeezy or Gumroad receipt:")
+                    Text("Scanning is always free. Enter the license key from your Lemon Squeezy receipt to unlock cleanup:")
                         .font(Theme.bodyFont(size: 13))
                         .foregroundColor(Theme.dynamicInk)
 
@@ -124,7 +125,7 @@ public struct LicenseActivationView: View {
 
                     HStack {
                         Button("Need a license? Purchase here ↗") {
-                            if let url = URL(string: "https://devpurge.com") {
+                            if let url = licenseManager.config.checkoutURL {
                                 NSWorkspace.shared.open(url)
                             }
                         }
