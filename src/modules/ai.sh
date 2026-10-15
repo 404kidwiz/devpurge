@@ -9,8 +9,13 @@ sweep_ai() {
     execute_sweep_path "$HOME/.ollama/tmp" "Ollama Temp Files"
   else
     if [ -f ~/.claude/history.jsonl ]; then
-      tail -n 1000 ~/.claude/history.jsonl > ~/.claude/history_tmp.jsonl || true
-      mv ~/.claude/history_tmp.jsonl ~/.claude/history.jsonl || true
+      local history_tmp
+      history_tmp=$(mktemp "$HOME/.claude/history.XXXXXX")
+      if ! tail -n 1000 "$HOME/.claude/history.jsonl" > "$history_tmp"; then
+        rm -f "$history_tmp"
+        return 1
+      fi
+      mv "$history_tmp" "$HOME/.claude/history.jsonl"
       log_action "Truncated Claude Code history to last 1K lines"
     fi
     execute_sweep_path "$HOME/.ollama/tmp" "Cleared Ollama temp files"
