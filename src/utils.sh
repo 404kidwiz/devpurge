@@ -28,11 +28,8 @@ execute_sweep_path() {
     else
       if [ "$RESCUE_MODE" = "true" ]; then
         local trash_root rescue_dir
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-          trash_root="$HOME/.Trash"
-        else
-          trash_root="$HOME/.local/share/Trash/files"
-        fi
+        # Same rescue location on every OS (matches report.py); override with DEVPURGE_TRASH_DIR.
+        trash_root="${DEVPURGE_TRASH_DIR:-$HOME/.Trash}"
         mkdir -p "$trash_root" || return 1
         rescue_dir=$(mktemp -d "$trash_root/devpurge.XXXXXX") || return 1
         mv "$target_path" "$rescue_dir/" || return 1

@@ -307,8 +307,8 @@ def cleanup(inventory, target, rescue=False):
     if reason:
         return 'REFUSED: protected path (' + reason + ')'
     if rescue:
-        trash = inventory.home / '.Trash'
-        trash.mkdir(exist_ok=True)
+        trash = Path(os.environ.get('DEVPURGE_TRASH_DIR') or inventory.home / '.Trash')
+        trash.mkdir(parents=True, exist_ok=True)
         destination = Path(tempfile.mkdtemp(prefix='devpurge.', dir=trash))
         shutil.move(str(path), str(destination / path.name))
         return 'MOVED TO TRASH (space not yet freed)'
