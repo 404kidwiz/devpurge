@@ -1,0 +1,2 @@
+# Sourced modules are resolved at runtime via $DIR; ShellCheck cannot follow them.
+disable=SC1091
