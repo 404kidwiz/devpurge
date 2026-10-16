@@ -3,14 +3,13 @@
 
   leak_guard.py check [PATH]       scan deploy/build output folders under PATH (default .)
   leak_guard.py staged             check files staged in the current git repo
-  leak_guard.py pre-deploy         agent hook: read hook JSON on stdin, block deploy commands
+  leak_guard.py pre-deploy [--cursor]  agent hook: read hook JSON on stdin, block deploy commands
                                    when output folders hold secret-looking files (exit 2)
   leak_guard.py install-git-hook [REPO]   write .git/hooks/pre-commit (refuses to overwrite)
   leak_guard.py print-config claude|codex|cursor   print an agent hook config; writes nothing
 
 Exit 0 clean, 1 findings (2 for pre-deploy blocks), 3 usage or install refusal.
 """
-import fnmatch
 import importlib.util
 import json
 import os
@@ -23,20 +22,19 @@ _spec = importlib.util.spec_from_file_location("devpurge_agents", os.path.join(_
 agents = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(agents)
 
-SECRET_PATTERNS = agents.IGNORED_KEEP
 # Templates meant to be committed and published.
 ALLOWED = (".env.example", ".env.sample", ".env.template")
 OUTPUT_DIRS = {"dist", "build", "out", ".vercel", ".netlify", ".next", "public", ".output", ".wrangler",
                "functions"}
 SKIP_DIRS = {".git", "node_modules"}
-DEPLOY_RE = re.compile(r"\b(wrangler\s+(pages\s+)?(deploy|publish)|vercel(\s|$)|netlify\s+deploy|"
-                       r"firebase\s+deploy)")
+DEPLOY_RE = re.compile(r"\b(wrangler(@\S+)?\s+((pages|versions)\s+)?(deploy|publish)|vercel(@\S+)?(\s|$)|"
+                       r"netlify(-cli)?(@\S+)?\s+deploy|firebase(-tools)?(@\S+)?\s+deploy)")
+CD_RE = re.compile(r"(?:^|[;&|(]\s*)cd\s+(\"[^\"]+\"|'[^']+'|[^\s;&|)]+)")
 HOOK_MARKER = "# devpurge leak-guard"
 
 
 def looks_secret(name):
-    base = os.path.basename(name)
-    return base not in ALLOWED and any(fnmatch.fnmatch(base, p) for p in SECRET_PATTERNS)
+    return os.path.basename(name) not in ALLOWED and agents.looks_secret(name)
 
 
 def scan_outputs(root):
@@ -64,25 +62,37 @@ def report(found, what):
     print(("%d secret-looking file(s) found." % len(found)) if found else "No secret-looking files found.")
 
 
-def pre_deploy(stdin):
+def pre_deploy(stdin, cursor=False):
+    """Exit 0 to allow, 2 to block. Unreadable hook input blocks (fail closed)."""
+    def decide(allow, message=""):
+        if cursor:
+            out = {"permission": "allow"} if allow else \
+                {"permission": "deny", "user_message": message, "agent_message": message}
+            print(json.dumps(out))
+        if not allow:
+            print(message, file=sys.stderr)
+        return 0 if allow else 2
     try:
-        event = json.loads(stdin or "{}")
-    except ValueError:
-        event = {}
-    command = (event.get("tool_input") or {}).get("command") or event.get("command") or ""
+        event = json.loads(stdin)
+        command = (event.get("tool_input") or {}).get("command") or event.get("command") or ""
+        if not isinstance(command, str):
+            raise ValueError
+    except (ValueError, AttributeError):
+        return decide(False, "DevPurge leak guard could not read the hook input, so it blocked the command.")
     if not DEPLOY_RE.search(command):
-        return 0
+        return decide(True)
     roots = event.get("workspace_roots") or []
-    root = event.get("cwd") or (roots[0] if roots else os.getcwd())
-    found = scan_outputs(root)
+    base = event.get("cwd") or (roots[0] if roots else os.getcwd())
+    targets = [base] + [os.path.join(base, os.path.expanduser(d.strip("'\""))) for d in CD_RE.findall(command)]
+    found = sorted({os.path.join(os.path.relpath(t, base), f) if t != base else f
+                    for t in targets if os.path.isdir(t) for f in scan_outputs(t)})
     if not found:
-        return 0
-    print("DevPurge leak guard blocked this deploy: secret-looking files in build output: %s. "
-          "Remove them from the output and retry." % ", ".join(found[:10]), file=sys.stderr)
-    return 2
+        return decide(True)
+    return decide(False, "DevPurge leak guard blocked this deploy: secret-looking files in build output: %s. "
+                  "Remove them from the output and retry." % ", ".join(found[:10]))
 
 
-def install_git_hook(repo):
+def install_git_hook(repo, dry_run=False):
     r = subprocess.run(["git", "-C", repo, "rev-parse", "--git-path", "hooks"], capture_output=True, text=True)
     if r.returncode != 0:
         print("Not a git repository: %s" % repo, file=sys.stderr)
@@ -93,6 +103,9 @@ def install_git_hook(repo):
         print("Refusing to overwrite existing %s; add this line to it instead:\n  python3 %s staged"
               % (path, os.path.abspath(__file__)), file=sys.stderr)
         return 3
+    if dry_run:
+        print("Dry run: would write %s; nothing written." % path)
+        return 0
     os.makedirs(hooks, exist_ok=True)
     with open(path, "w") as f:
         f.write("#!/bin/sh\n%s\nexec python3 '%s' staged\n" % (HOOK_MARKER, os.path.abspath(__file__)))
@@ -102,7 +115,7 @@ def install_git_hook(repo):
 
 
 def print_config(tool):
-    cmd = "python3 '%s' pre-deploy" % os.path.abspath(__file__)
+    cmd = "python3 '%s' pre-deploy%s" % (os.path.abspath(__file__), " --cursor" if tool == "cursor" else "")
     if tool == "claude":  # .claude/settings.json
         conf = {"hooks": {"PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": cmd}]}]}}
     elif tool == "codex":  # ~/.codex/hooks.json or <repo>/.codex/hooks.json
@@ -120,6 +133,9 @@ def print_config(tool):
 def main(argv):
     cmd, args = (argv[1], argv[2:]) if len(argv) > 1 else ("check", [])
     if cmd == "check":
+        if args and not os.path.isdir(args[0]):
+            print("Not a directory: %s" % args[0], file=sys.stderr)
+            return 3
         found = scan_outputs(args[0] if args else ".")
         report(found, "in build output")
         return 1 if found else 0
@@ -131,9 +147,10 @@ def main(argv):
                   file=sys.stderr)
         return 1 if found else 0
     if cmd == "pre-deploy":
-        return pre_deploy(sys.stdin.read())
+        return pre_deploy(sys.stdin.read(), cursor="--cursor" in args)
     if cmd == "install-git-hook":
-        return install_git_hook(args[0] if args else ".")
+        paths = [a for a in args if a != "--dry-run"]
+        return install_git_hook(paths[0] if paths else ".", dry_run="--dry-run" in args)
     if cmd == "print-config" and args:
         return print_config(args[0])
     print(__doc__, file=sys.stderr)

@@ -94,7 +94,49 @@ class LeakGuardTests(unittest.TestCase):
             self.assertEqual(result.returncode, 2, event)
             self.assertIn("dist/.env", result.stderr)
         result = run("pre-deploy", stdin=json.dumps({"tool_input": {"command": "npm test"}, "cwd": str(self.root)}))
+        self.assertEqual(result.stdout, "")
         self.assertEqual(result.returncode, 0)
+
+    def test_pre_deploy_catches_more_deploy_forms_and_cd_targets(self):
+        proj = self.root / "proj"
+        (proj / "dist").mkdir(parents=True)
+        (proj / "dist/.env").write_text("x")
+        for command in ("npx vercel@latest deploy --prod", "wrangler versions deploy",
+                        "cd proj && netlify deploy --prod", "cd 'proj'; npx netlify-cli deploy"):
+            cwd = self.root if command.startswith("cd") else proj
+            result = run("pre-deploy", stdin=json.dumps({"tool_input": {"command": command}, "cwd": str(cwd)}))
+            self.assertEqual(result.returncode, 2, command)
+            self.assertIn(".env", result.stderr)
+
+    def test_pre_deploy_malformed_input_fails_closed(self):
+        for stdin in ("", "not json", "[1]", '{"tool_input": {"command": 5}}'):
+            self.assertEqual(run("pre-deploy", stdin=stdin).returncode, 2, stdin)
+            result = run("pre-deploy", "--cursor", stdin=stdin)
+            self.assertEqual(json.loads(result.stdout)["permission"], "deny", stdin)
+
+    def test_cursor_output_allows_clean_and_denies_leaks(self):
+        event = {"command": "vercel --prod", "workspace_roots": [str(self.root)]}
+        result = run("pre-deploy", "--cursor", stdin=json.dumps(event))
+        self.assertEqual((result.returncode, json.loads(result.stdout)), (0, {"permission": "allow"}))
+        result = run("pre-deploy", "--cursor", stdin=json.dumps({"command": "ls", "cwd": str(self.root)}))
+        self.assertEqual(json.loads(result.stdout), {"permission": "allow"})
+        self.add("dist/.env")
+        result = run("pre-deploy", "--cursor", stdin=json.dumps(event))
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(json.loads(result.stdout)["permission"], "deny")
+
+    def test_install_git_hook_dry_run_writes_nothing(self):
+        git(self.root, "init", "-q")
+        for argv in (["python3", GUARD, "install-git-hook", str(self.root), "--dry-run"],
+                     ["bash", str(ROOT / "bin/devpurge"), "--leak-guard", "install-git-hook", str(self.root),
+                      "--dry-run"]):
+            result = subprocess.run(argv, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("Dry run", result.stdout)
+            self.assertFalse((self.root / ".git/hooks/pre-commit").exists())
+
+    def test_check_missing_path_is_an_error(self):
+        self.assertEqual(run("check", str(self.root / "nope")).returncode, 3)
 
     def test_pre_deploy_allows_clean_output(self):
         event = {"tool_input": {"command": "firebase deploy"}, "cwd": str(self.root)}
