@@ -147,6 +147,33 @@ This is a Pro feature. The CLI does not check a license yet. In the Mac app the 
 split as cleanup today: the agent scan is free, and the remove actions call `LicenseManager`
 and are unlocked by a license or count against the trial.
 
+## Secret-leak guard (Pro)
+
+The leak guard matches file names and paths only. It never opens, reads or deletes a file.
+It uses the same secret pattern list as agent leftovers (`.env*`, keys, `.npmrc`, `.netrc`,
+SSH keys, Terraform state, service account JSON, local databases and more). `.env.example`,
+`.env.sample` and `.env.template` are allowed.
+
+- `devpurge --leak-check [PATH]` reports secret-looking files inside `dist/`, `build/`, `out/`,
+  `.vercel/`, `.netlify/`, `.next/`, `public/`, `.output/`, `.wrangler/` and `functions/` anywhere
+  under PATH (skipping `.git` and `node_modules`), and exits 1 if it finds any.
+- `devpurge --leak-guard install-git-hook [REPO]` writes `.git/hooks/pre-commit`, which blocks a
+  commit that stages a secret-looking file anywhere. It refuses to overwrite a hook it didn't write.
+  `git commit --no-verify` skips it once.
+- `devpurge --leak-guard print-config claude|codex|cursor` prints a pre-deploy hook config and writes
+  nothing. Paste it in yourself. The hook runs `leak_guard.py pre-deploy`, which reads the hook's JSON
+  on stdin and, for `wrangler deploy`, `wrangler pages deploy`, `vercel`, `netlify deploy` or
+  `firebase deploy`, exits 2 (block) if the output folders hold secret-looking files.
+  - Claude Code: `PreToolUse` on `Bash` in `.claude/settings.json`
+    ([hooks reference](https://code.claude.com/docs/en/hooks)).
+  - Codex: `PreToolUse` with matcher `^Bash$` in `~/.codex/hooks.json` or the repo's `.codex/hooks.json`
+    ([Codex hooks](https://developers.openai.com/codex/hooks)).
+  - Cursor: `beforeShellExecution` in `.cursor/hooks.json`, with `failClosed: true` so a crashed
+    hook blocks ([Cursor hooks](https://cursor.com/docs/hooks)).
+
+This is a Pro feature. The CLI does not check a license yet; in the Mac app the plan is that the
+report is free and the hook installers are licensed.
+
 ## Install the CLI
 
 ```bash

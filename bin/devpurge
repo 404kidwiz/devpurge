@@ -12,6 +12,12 @@ while [ -L "$SCRIPT_PATH" ]; do
 done
 DIR="$(cd "$(dirname "$SCRIPT_PATH")/../src" && pwd)"
 
+# Leak guard takes positional arguments, so it runs before option validation.
+case "${1:-}" in
+  --leak-check) shift; exec python3 "$DIR/leak_guard.py" check "$@" ;;
+  --leak-guard) shift; exec python3 "$DIR/leak_guard.py" "$@" ;;
+esac
+
 # Colors for UI
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -64,6 +70,8 @@ show_help() {
   for i in "${!MODULES[@]}"; do
     printf "  --%-10s Sweep %s\n" "${MODULES[$i]}" "${DESCRIPTIONS[$i]}"
   done
+  echo "  --leak-check [PATH]  [Pro] Report secret-looking files in build/deploy output"
+  echo "  --leak-guard staged|install-git-hook|print-config TOOL  [Pro] Leak guard hooks"
   echo "  --install    Install the CLI only; no background cleanup"
   echo "  --background Scheduled cache cleanup (requires automated_sweep: true)"
   echo "  --yes        Confirm --docker without the typed 'prune docker' prompt"
