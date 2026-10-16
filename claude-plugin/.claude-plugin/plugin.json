@@ -1,0 +1,14 @@
+{
+  "name": "devpurge",
+  "displayName": "DevPurge",
+  "version": "0.1.0",
+  "description": "Find and safely clear developer cache bloat (npm, pnpm, pip, Cargo, Go, Xcode, Homebrew) with the free DevPurge CLI. Scans are read-only; cleanup previews first and asks before deleting.",
+  "author": {
+    "name": "404kidwiz",
+    "url": "https://github.com/404kidwiz"
+  },
+  "homepage": "https://github.com/404kidwiz/devpurge",
+  "repository": "https://github.com/404kidwiz/devpurge",
+  "license": "MIT",
+  "keywords": ["cleanup", "disk-space", "cache", "macos", "developer-tools"]
+}
