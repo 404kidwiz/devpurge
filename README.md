@@ -162,8 +162,11 @@ SSH keys, Terraform state, service account JSON, local databases and more). `.en
   `git commit --no-verify` skips it once.
 - `devpurge --leak-guard print-config claude|codex|cursor` prints a pre-deploy hook config and writes
   nothing. Paste it in yourself. The hook runs `leak_guard.py pre-deploy`, which reads the hook's JSON
-  on stdin and, for `wrangler deploy`, `wrangler pages deploy`, `vercel`, `netlify deploy` or
-  `firebase deploy`, exits 2 (block) if the output folders hold secret-looking files.
+  on stdin and, for `wrangler deploy` (including `pages` and `versions`), `vercel` (including `npx vercel@latest`), `netlify deploy` or
+  `firebase deploy`, exits 2 (block) if output folders under the hook directory or any `cd` target hold
+  secret-looking files. Unreadable hook input also blocks. With `--cursor` it also prints Cursor's
+  `{"permission": ...}` reply. `install-git-hook --dry-run` writes nothing, and `--leak-check` on a missing
+  path exits 3.
   - Claude Code: `PreToolUse` on `Bash` in `.claude/settings.json`
     ([hooks reference](https://code.claude.com/docs/en/hooks)).
   - Codex: `PreToolUse` with matcher `^Bash$` in `~/.codex/hooks.json` or the repo's `.codex/hooks.json`
