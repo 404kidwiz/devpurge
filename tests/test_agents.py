@@ -153,6 +153,47 @@ class AgentLeftoverTests(unittest.TestCase):
         for rel in ("snapshot/s", "auth.json", "opencode.db"):
             self.assertTrue((base / rel).exists(), rel)
 
+    def test_clone_with_dirty_linked_worktree_is_report_only(self):
+        # QA repro: deleting such a clone used to destroy the linked worktree's repository.
+        twin = self.home / "Projects" / "app-copy"
+        git(self.home, "clone", str(self.remote), str(twin))
+        wip = self.home / "Documents" / "wip-wt"
+        git(twin, "worktree", "add", "-b", "wip", str(wip))
+        (wip / "c").write_text("staged")
+        git(wip, "add", "c")
+        (wip / "a.txt").write_text("edit")
+        item = self.items()[str(twin)]
+        self.assertFalse(item["eligible"])
+        self.assertIn("linked worktrees", item["reason"])
+        self.assertEqual(agents.git(str(wip), "status", "--porcelain")[0], 0)
+
+    def test_ignored_secret_blocks_worktree_removal(self):
+        wt = self.add_worktree("agent-env")
+        (wt / ".gitignore").write_text(".env\n*.local\nnode_modules/\n")
+        git(wt, "add", ".gitignore")
+        git(wt, "commit", "-m", "ignore")
+        git(wt, "push")
+        os.utime(wt, (OLD, OLD))
+        (wt / ".env").write_text("SECRET=1")
+        item = self.items()[str(wt)]
+        self.assertFalse(item["eligible"])
+        self.assertIn("ignored secret", item["reason"])
+        self.run_cli("--execute", env=dict(self.env, DEVPURGE_YES="true"))
+        self.assertTrue((wt / ".env").exists())
+
+    def test_ignored_secret_blocks_clone_and_regenerable_dirs_do_not(self):
+        twin = self.home / "Projects" / "app-copy"
+        git(self.home, "clone", str(self.remote), str(twin))
+        (twin / ".git/info/exclude").write_text("node_modules/\nconfig/\n")
+        (twin / "node_modules/pkg").mkdir(parents=True)
+        (twin / "node_modules/pkg/secrets.json").write_text("x")
+        self.assertEqual(self.items()[str(twin)]["action"], "delete-clone")
+        (twin / "config").mkdir()
+        (twin / "config/app.local").write_text("x")
+        item = self.items()[str(twin)]
+        self.assertFalse(item["eligible"])
+        self.assertIn("config/app.local", item["reason"])
+
     def test_cli_flag_is_dry_run(self):
         wt = self.add_worktree("agent-cli")
         result = subprocess.run(["bash", str(ROOT / "bin/devpurge"), "--agents", "--dry-run"], env=self.env,

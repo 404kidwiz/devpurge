@@ -131,12 +131,14 @@ Without `--dry-run`, after typing `remove agent leftovers` (or `--yes`) it only:
 
 - runs `git worktree remove` (never `--force`) and then `git worktree prune` on agent-made worktrees
   idle for 7+ days that have no uncommitted or untracked files, no stash and no unpushed commits
-  (or, without an upstream, a HEAD that is on a remote branch);
+  (or, without an upstream, a HEAD that is on a remote branch), and no gitignored secrets or local
+  config (`.env*`, `*.pem`, `*.key`, `*.p12`, `credentials*`, `secrets*`, `*.sqlite`, `*.db`, `*.local`).
+  Ignored regenerable folders such as `node_modules`, `build`, `dist` and `.venv` don't block;
 - prunes records of worktrees whose folder is already gone;
 - deletes OpenCode `log/` and `tool-output/`. `opencode.db`, `auth.json` and snapshots are never touched.
 
 Worktrees not made by a known agent, locked worktrees and unregistered folders are report only.
-A duplicate clone is deletable only when it is clean, fully pushed, has no stash and has the same
+A clone with any linked worktree is report only. A duplicate clone is deletable only when it is clean, fully pushed, has no stash and has the same
 HEAD as a clean clone that is kept; each one needs its folder name typed at an interactive prompt,
 and `--yes` never deletes clones.
 
