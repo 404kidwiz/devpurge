@@ -42,11 +42,13 @@ CACHES = ((".local/share/opencode/log", "OpenCode logs", "cache"),
           (".local/share/opencode/repos", "OpenCode repo copies (report only)", "report"))
 
 
-# Ignored files that hold secrets or local state block removal; regenerable dirs do not.
-IGNORED_KEEP = (".env*", "*.pem", "*.key", "*.p12", "credentials*", "secrets*", "*.sqlite", "*.sqlite3",
-                "*.db", "*.local", "*.local.*")
-IGNORED_REGENERABLE = {"node_modules", "build", "dist", ".venv", "venv", "__pycache__", ".cache", "cache",
-                       ".next", ".turbo", "target", ".pytest_cache", ".mypy_cache", "coverage"}
+# Gitignored files that hold secrets or local state block removal, wherever they sit
+# (including inside build/, dist/ or node_modules/): when in doubt, keep.
+IGNORED_KEEP = (".env*", "*.pem", "*.key", "*.p12", "*.pfx", "*.jks", "*.keystore", "*.kdbx", "*.ovpn",
+                "credentials*", "secrets*", "secret.*", "service-account*.json", "*.tfstate*", "*.tfvars",
+                ".npmrc", ".pypirc", ".netrc", ".git-credentials", ".htpasswd", ".dockercfg",
+                "id_rsa*", "id_dsa*", "id_ecdsa*", "id_ed25519*", "*.sqlite", "*.sqlite3", "*.db",
+                "*.local", "*.local.*")
 
 
 def git(path, *args):
@@ -90,18 +92,16 @@ def worktrees(repo):
 
 def ignored_secret(path):
     """First gitignored file that looks like a secret or local config, or None."""
-    _, out = git(path, "status", "--porcelain", "--ignored")
-    for line in out.splitlines():
-        if not line.startswith("!! "):
+    r = subprocess.run(["git", "-C", path, "status", "--porcelain=v1", "-z", "--ignored"],
+                       capture_output=True, text=True)
+    for entry in r.stdout.split("\0"):
+        if not entry.startswith("!! "):
             continue
-        rel = line[3:].strip('"').rstrip("/")
+        rel = entry[3:].rstrip("/")
         full = os.path.join(path, rel)
-        if os.path.basename(rel) in IGNORED_REGENERABLE:
-            continue
         names = [rel]
         if os.path.isdir(full):
-            for root, dirs, files in os.walk(full):
-                dirs[:] = [d for d in dirs if d not in IGNORED_REGENERABLE]
+            for root, _dirs, files in os.walk(full):
                 names += [os.path.relpath(os.path.join(root, f), path) for f in files]
         for name in names:
             if any(fnmatch.fnmatch(os.path.basename(name), g) for g in IGNORED_KEEP):
