@@ -133,7 +133,8 @@ Without `--dry-run`, after typing `remove agent leftovers` (or `--yes`) it only:
   idle for 7+ days that have no uncommitted or untracked files, no stash and no unpushed commits
   (or, without an upstream, a HEAD that is on a remote branch), and no gitignored secrets or local
   config (`.env*`, `*.pem`, `*.key`, `*.p12`, `credentials*`, `secrets*`, `*.sqlite`, `*.db`, `*.local`).
-  Ignored regenerable folders such as `node_modules`, `build`, `dist` and `.venv` don't block;
+  plus `.npmrc`, `.pypirc`, `.netrc`, SSH keys, `*.tfstate*` and `service-account*.json`, found anywhere in
+  ignored folders, including `node_modules`, `build` and `dist`; other ignored files don't block;
 - prunes records of worktrees whose folder is already gone;
 - deletes OpenCode `log/` and `tool-output/`. `opencode.db`, `auth.json` and snapshots are never touched.
 

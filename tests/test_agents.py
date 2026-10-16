@@ -181,18 +181,50 @@ class AgentLeftoverTests(unittest.TestCase):
         self.run_cli("--execute", env=dict(self.env, DEVPURGE_YES="true"))
         self.assertTrue((wt / ".env").exists())
 
-    def test_ignored_secret_blocks_clone_and_regenerable_dirs_do_not(self):
+    def ignored_twin(self, rel):
         twin = self.home / "Projects" / "app-copy"
         git(self.home, "clone", str(self.remote), str(twin))
-        (twin / ".git/info/exclude").write_text("node_modules/\nconfig/\n")
+        (twin / ".git/info/exclude").write_text("node_modules/\nbuild/\nconfig/\n.npmrc\n*.txt\n")
         (twin / "node_modules/pkg").mkdir(parents=True)
-        (twin / "node_modules/pkg/secrets.json").write_text("x")
-        self.assertEqual(self.items()[str(twin)]["action"], "delete-clone")
-        (twin / "config").mkdir()
-        (twin / "config/app.local").write_text("x")
-        item = self.items()[str(twin)]
-        self.assertFalse(item["eligible"])
+        (twin / "node_modules/pkg/index.js").write_text("x")
+        (twin / "build").mkdir()
+        (twin / "build/out.txt").write_text("x")
+        if rel:
+            (twin / rel).parent.mkdir(parents=True, exist_ok=True)
+            (twin / rel).write_text("x")
+        return twin, self.items()[str(twin)]
+
+    def test_ignored_regenerable_dirs_without_secrets_do_not_block(self):
+        _, item = self.ignored_twin(None)
+        self.assertEqual(item["action"], "delete-clone")
+
+    def test_ignored_local_config_blocks_clone(self):
+        _, item = self.ignored_twin("config/app.local")
         self.assertIn("config/app.local", item["reason"])
+
+    def test_secrets_inside_regenerable_dirs_block(self):
+        for rel in ("node_modules/pkg/secrets.json", "build/.env"):
+            subprocess.run(["rm", "-rf", str(self.home / "Projects" / "app-copy")], check=True)
+            _, item = self.ignored_twin(rel)
+            self.assertFalse(item["eligible"], rel)
+            self.assertIn(rel, item["reason"])
+
+    def test_extended_secret_patterns_block(self):
+        for rel in (".npmrc", "config/.pypirc", "config/.netrc", "config/id_rsa", "config/id_ed25519.pub",
+                    "config/terraform.tfstate.backup", "config/service-account-prod.json"):
+            subprocess.run(["rm", "-rf", str(self.home / "Projects" / "app-copy")], check=True)
+            _, item = self.ignored_twin(rel)
+            self.assertFalse(item["eligible"], rel)
+
+    def test_non_ascii_ignored_secret_blocks(self):
+        twin, item = self.ignored_twin("config/ünï/.env")
+        self.assertFalse(item["eligible"])
+        self.assertIn("ünï/.env", item["reason"])
+        wt = self.add_worktree("agent-uni")
+        (self.repo / ".git/info/exclude").write_text("ünï/\n")
+        (wt / "ünï").mkdir()
+        (wt / "ünï/.env").write_text("S")
+        self.assertIn("ignored secret", self.items()[str(wt)]["reason"])
 
     def test_cli_flag_is_dry_run(self):
         wt = self.add_worktree("agent-cli")
