@@ -25,8 +25,13 @@ class ClaudePluginTests(unittest.TestCase):
 
     def test_clean_never_preapproves_real_cleanup(self):
         head = (PLUGIN / "commands/clean.md").read_text().split("---", 2)[1]
+        safe = {"all", "uv", "node", "lang", "mac", "system", "browsers", "installers", "oldstores"}
         for rule in re.findall(r"Bash\(([^)]*)\)", head):
-            self.assertTrue("--dry-run" in rule or rule.startswith("command -v"), rule)
+            if rule == "command -v devpurge":
+                continue
+            self.assertNotIn("*", rule)
+            m = re.fullmatch(r"devpurge --(\w+) --dry-run", rule)
+            self.assertTrue(m and m.group(1) in safe, rule)
 
     def test_readme_and_license(self):
         readme = re.sub(r"```.*?```", "", (PLUGIN / "README.md").read_text(), flags=re.S)
