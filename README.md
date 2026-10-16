@@ -104,6 +104,7 @@ These groups are excluded from `--all` and scheduled sweeps.
 | `--ai` | **Explicit only:** truncates Claude history to 1,000 lines and deletes Ollama temporary files |
 | `--docker` | **Explicit only:** `docker system prune -af --volumes`; can delete container data. Asks you to type `prune docker` (or pass `--yes`) |
 | `--git` | **Explicit only:** Git GC with default retention in repositories discovered under Desktop, Documents, Projects, Developer |
+| `--agents` | **Pro, explicit only:** agent leftovers. Reports stale worktrees, duplicate clones and OpenCode caches from parallel Claude Code, Codex, OpenCode, Kilo and Clawdbot runs. See below |
 
 Close relevant builds/apps before clearing their caches. Future builds and installs
 may need downloads. `--node` prunes only the active pnpm store; `--oldstores` handles supported older stores.
@@ -113,6 +114,35 @@ requires closing Claude sessions first.
 
 Cleanup stops and exits nonzero on command failures. Missing tools and rescue-mode
 skips are explicitly reported. Earlier successful cleanup is not rolled back.
+
+## Agent leftovers (Pro)
+
+`devpurge --agents --dry-run` (or `python3 src/agents.py`) reports, and never changes:
+
+- worktrees under `.claude/worktrees`, `.codex/worktrees`, `.kilo/worktrees`, `.clawdbot/worktrees`
+  and OpenCode folders, for every repository directly under `~/Desktop/404 Projects`, `~/Projects`,
+  `~/Developer`, `~/code`, `~/src`, `~/dev` and `~/repos` (override with `DEVPURGE_AGENT_ROOTS`,
+  colon separated, relative to home);
+- `~/.codex/worktrees` folders no repository still lists;
+- clones of the same `origin` remote;
+- OpenCode logs, tool output, snapshots and repo copies.
+
+Without `--dry-run`, after typing `remove agent leftovers` (or `--yes`) it only:
+
+- runs `git worktree remove` (never `--force`) and then `git worktree prune` on agent-made worktrees
+  idle for 7+ days that have no uncommitted or untracked files, no stash and no unpushed commits
+  (or, without an upstream, a HEAD that is on a remote branch);
+- prunes records of worktrees whose folder is already gone;
+- deletes OpenCode `log/` and `tool-output/`. `opencode.db`, `auth.json` and snapshots are never touched.
+
+Worktrees not made by a known agent, locked worktrees and unregistered folders are report only.
+A duplicate clone is deletable only when it is clean, fully pushed, has no stash and has the same
+HEAD as a clean clone that is kept; each one needs its folder name typed at an interactive prompt,
+and `--yes` never deletes clones.
+
+This is a Pro feature. The CLI does not check a license yet. In the Mac app the plan is the same
+split as cleanup today: the agent scan is free, and the remove actions call `LicenseManager`
+and are unlocked by a license or count against the trial.
 
 ## Install the CLI
 

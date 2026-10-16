@@ -78,7 +78,7 @@ run_if_allowed() {
   if [[ " $IGNORE_TARGETS " == *" $target_name "* ]]; then
     echo -e "${RED}[IGNORED by Config] $target_name${NC}"
   else
-    if [ "$RESCUE_MODE" = true ] && [[ "$target_name" =~ ^(ai|docker|git)$ ]]; then
+    if [ "$RESCUE_MODE" = true ] && [[ "$target_name" =~ ^(ai|agents|docker|git)$ ]]; then
       log_action "[SKIPPED] $target_name cannot be rescued to Trash"
       return 0
     fi
