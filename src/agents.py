@@ -51,6 +51,28 @@ IGNORED_KEEP = (".env*", "*.pem", "*.key", "*.p12", "*.pfx", "*.jks", "*.keystor
                 "*.local", "*.local.*")
 
 
+# Inside dependency folders only high-confidence secret names block, and source files never do.
+DEPENDENCY_DIRS = {"node_modules", ".venv", "venv", "vendor", "bower_components", "site-packages",
+                   "dist-packages", ".pnpm-store", "Pods", "Carthage", ".yarn", "jspm_packages"}
+DEPENDENCY_KEEP = (".env", ".env.*", "*.pem", "*.key", "*.p12", "*.pfx", "id_rsa*", "id_ed25519*",
+                   "id_ecdsa*", "id_dsa*", ".npmrc", ".pypirc", ".netrc", ".git-credentials",
+                   "service-account*.json", "*.tfstate*", "*.kdbx")
+SOURCE_SUFFIXES = (".d.ts", ".js", ".mjs", ".cjs", ".map", ".ts", ".tsx", ".jsx", ".py")
+TEMPLATE_SUFFIXES = (".example", ".sample", ".template")
+
+
+def looks_secret(relpath):
+    """True if a file name looks like a secret or local config. Name and path only."""
+    base = os.path.basename(relpath)
+    if base.endswith(TEMPLATE_SUFFIXES):
+        return False
+    if DEPENDENCY_DIRS.intersection(relpath.replace(os.sep, "/").split("/")[:-1]):
+        if base.endswith(SOURCE_SUFFIXES) or base == ".env.dist":
+            return False
+        return any(fnmatch.fnmatch(base, g) for g in DEPENDENCY_KEEP)
+    return any(fnmatch.fnmatch(base, g) for g in IGNORED_KEEP)
+
+
 def git(path, *args):
     r = subprocess.run(["git", "-C", path, *args], capture_output=True, text=True)
     return r.returncode, r.stdout.strip()
@@ -104,7 +126,7 @@ def ignored_secret(path):
             for root, _dirs, files in os.walk(full):
                 names += [os.path.relpath(os.path.join(root, f), path) for f in files]
         for name in names:
-            if any(fnmatch.fnmatch(os.path.basename(name), g) for g in IGNORED_KEEP):
+            if looks_secret(name):
                 return name
     return None
 

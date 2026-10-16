@@ -203,7 +203,7 @@ class AgentLeftoverTests(unittest.TestCase):
         self.assertIn("config/app.local", item["reason"])
 
     def test_secrets_inside_regenerable_dirs_block(self):
-        for rel in ("node_modules/pkg/secrets.json", "build/.env"):
+        for rel in ("node_modules/pkg/.env", "build/.env", "build/secrets.json"):
             subprocess.run(["rm", "-rf", str(self.home / "Projects" / "app-copy")], check=True)
             _, item = self.ignored_twin(rel)
             self.assertFalse(item["eligible"], rel)
@@ -225,6 +225,26 @@ class AgentLeftoverTests(unittest.TestCase):
         (wt / "ünï").mkdir()
         (wt / "ünï/.env").write_text("S")
         self.assertIn("ignored secret", self.items()[str(wt)]["reason"])
+
+    def test_dependency_dirs_block_only_high_confidence_names(self):
+        # QA build-r3: nmsec (.env.example) and nmaws (secretsmanager.d.ts) are cleanable.
+        for rel in ("node_modules/dotenv/.env.example", "node_modules/@aws-sdk/x/dist/secretsmanager.d.ts",
+                    "node_modules/a/credentials.js.map", "node_modules/a/secrets.py", "node_modules/a/app.db",
+                    "node_modules/a/.env.dist", "node_modules/a/site-packages/config.local.py"):
+            subprocess.run(["rm", "-rf", str(self.home / "Projects" / "app-copy")], check=True)
+            _, item = self.ignored_twin(rel)
+            self.assertEqual(item["action"], "delete-clone", (rel, item["reason"]))
+        for rel in ("node_modules/a/.env", "node_modules/a/.env.production", "node_modules/a/.npmrc",
+                    "vendor/c/server.pem", "Pods/d/id_ed25519", "node_modules/a/terraform.tfstate"):
+            subprocess.run(["rm", "-rf", str(self.home / "Projects" / "app-copy")], check=True)
+            _, item = self.ignored_twin(rel)
+            self.assertFalse(item["eligible"], rel)
+
+    def test_template_variants_exempt_everywhere(self):
+        for rel in ("config/.env.example", "config/secrets.yml.sample", "config/credentials.json.template"):
+            subprocess.run(["rm", "-rf", str(self.home / "Projects" / "app-copy")], check=True)
+            _, item = self.ignored_twin(rel)
+            self.assertEqual(item["action"], "delete-clone", rel)
 
     def test_cli_flag_is_dry_run(self):
         wt = self.add_worktree("agent-cli")
