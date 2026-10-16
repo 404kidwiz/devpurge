@@ -13,6 +13,7 @@ that is kept, and each one needs its own typed name at an interactive prompt.
 Everything else is report only.
 """
 import argparse
+import fnmatch
 import importlib.util
 import json
 import os
@@ -39,6 +40,13 @@ CACHES = ((".local/share/opencode/log", "OpenCode logs", "cache"),
           (".local/share/opencode/tool-output", "OpenCode tool output", "cache"),
           (".local/share/opencode/snapshot", "OpenCode snapshots (undo history, report only)", "report"),
           (".local/share/opencode/repos", "OpenCode repo copies (report only)", "report"))
+
+
+# Ignored files that hold secrets or local state block removal; regenerable dirs do not.
+IGNORED_KEEP = (".env*", "*.pem", "*.key", "*.p12", "credentials*", "secrets*", "*.sqlite", "*.sqlite3",
+                "*.db", "*.local", "*.local.*")
+IGNORED_REGENERABLE = {"node_modules", "build", "dist", ".venv", "venv", "__pycache__", ".cache", "cache",
+                       ".next", ".turbo", "target", ".pytest_cache", ".mypy_cache", "coverage"}
 
 
 def git(path, *args):
@@ -80,13 +88,37 @@ def worktrees(repo):
     return items[1:]  # first entry is the main worktree
 
 
+def ignored_secret(path):
+    """First gitignored file that looks like a secret or local config, or None."""
+    _, out = git(path, "status", "--porcelain", "--ignored")
+    for line in out.splitlines():
+        if not line.startswith("!! "):
+            continue
+        rel = line[3:].strip('"').rstrip("/")
+        full = os.path.join(path, rel)
+        if os.path.basename(rel) in IGNORED_REGENERABLE:
+            continue
+        names = [rel]
+        if os.path.isdir(full):
+            for root, dirs, files in os.walk(full):
+                dirs[:] = [d for d in dirs if d not in IGNORED_REGENERABLE]
+                names += [os.path.relpath(os.path.join(root, f), path) for f in files]
+        for name in names:
+            if any(fnmatch.fnmatch(os.path.basename(name), g) for g in IGNORED_KEEP):
+                return name
+    return None
+
+
 def unsafe_reason(path):
-    """Why a checkout must be kept: uncommitted/untracked work, stash or unpushed commits."""
+    """Why a checkout must be kept: uncommitted/untracked work, ignored secrets, stash or unpushed commits."""
     code, out = git(path, "status", "--porcelain")
     if code != 0:
         return "git status failed"
     if out:
         return "uncommitted or untracked changes"
+    secret = ignored_secret(path)
+    if secret:
+        return "ignored secret or local config file (report only): " + secret
     branch = git(path, "rev-parse", "--abbrev-ref", "HEAD")[1]
     _, stashes = git(path, "stash", "list")
     label = "(no branch)" if branch == "HEAD" else branch
@@ -158,7 +190,7 @@ def scan_clones(home, repos):
             continue
         info = []
         for p in paths:
-            reason = unsafe_reason(p)
+            reason = "has linked worktrees (report only)" if worktrees(p) else unsafe_reason(p)
             if not reason and git(p, "log", "--branches", "--not", "--remotes", "--oneline")[1]:
                 reason = "local branches with unpushed commits"
             if not reason and git(p, "stash", "list")[1]:
@@ -237,7 +269,7 @@ def execute(items, home, interactive):
                     != os.path.basename(path):
                 print("  - [SKIPPED] clone %s" % path)
                 continue
-            ok = not (unsafe_reason(path) or safety.protected_reason(path, home))
+            ok = not (worktrees(path) or unsafe_reason(path) or safety.protected_reason(path, home))
             if ok:
                 shutil.rmtree(path)
         print(("  - Done: %s %s" if ok else "  - [FAILED] %s %s") % (i["action"], path),
