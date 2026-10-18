@@ -16,6 +16,7 @@ DIR="$(cd "$(dirname "$SCRIPT_PATH")/../src" && pwd)"
 case "${1:-}" in
   --leak-check) shift; exec python3 "$DIR/leak_guard.py" check "$@" ;;
   --leak-guard) shift; exec python3 "$DIR/leak_guard.py" "$@" ;;
+  --key-sweep) shift; exec python3 "$DIR/key_sweep.py" "$@" ;;
 esac
 
 # Colors for UI
@@ -71,6 +72,7 @@ show_help() {
     printf "  --%-10s Sweep %s\n" "${MODULES[$i]}" "${DESCRIPTIONS[$i]}"
   done
   echo "  --leak-check [PATH]  [Pro] Report secret-looking files in build/deploy output"
+  echo "  --key-sweep [--json]  [Pro] Report provider API keys in .env and agent config files (masked)"
   echo "  --leak-guard staged|install-git-hook|print-config TOOL  [Pro] Leak guard hooks"
   echo "  --install    Install the CLI only; no background cleanup"
   echo "  --background Scheduled cache cleanup (requires automated_sweep: true)"
