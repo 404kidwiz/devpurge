@@ -3,7 +3,7 @@ const $ = id => document.getElementById(id);
 const token = location.hash.slice(1) || sessionStorage.getItem('devpurge-token');
 if (location.hash) { sessionStorage.setItem('devpurge-token', token); history.replaceState(null, '', '/'); }
 let targets = [], selected = new Set(), filter = 'all', busy = false, plan = null;
-const bytes = n => n == null ? 'Unknown' : n >= 1073741824 ? (n / 1073741824).toFixed(2) + ' GiB' : (n / 1048576).toFixed(1) + ' MiB';
+const bytes = fmtBytes; // decimal GB, shared rules in units.js
 const titleFor = t => t.category === 'browsers' ? t.path.split('/Caches/').pop().replaceAll('/', ' / ') : label(t) + ' / ' + t.path.split('/').slice(-2).join('/');
 const label = t => ({browsers:'Browser cache', installers:'App installer', oldstores:'pnpm store', review:'Retained storage'}[t.category] || t.category);
 const say = (message, error = false) => { $('status').textContent = message; $('status').classList.toggle('error', error); };

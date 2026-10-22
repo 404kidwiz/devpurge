@@ -258,7 +258,7 @@ def print_report(items):
                                               ai_bloat.human(sum(i["bytes"] for i in rows if i["eligible"]))))
         for i in rows:
             tag = i["action"] if i["eligible"] else "keep"
-            print("  %7s  %-12s %s%s" % (ai_bloat.human(i["bytes"]), tag, i["path"],
+            print("  %9s  %-12s %s%s" % (ai_bloat.human(i["bytes"]), tag, i["path"],
                                         "" if i["eligible"] else "  (%s)" % i["reason"]))
     print("Dry run is the default. Duplicate clones always need a typed name per clone.")
 

@@ -49,6 +49,7 @@ class Handler(BaseHTTPRequestHandler):
             self.respond(403, {'error': 'Invalid local host'})
             return
         routes = {'/': ('index.html', 'text/html; charset=utf-8'),
+                  '/units.js': ('units.js', 'text/javascript; charset=utf-8'),
                   '/app.js': ('app.js', 'text/javascript; charset=utf-8'),
                   '/style.css': ('style.css', 'text/css; charset=utf-8')}
         asset = routes.get(self.path)
