@@ -100,7 +100,7 @@ public struct StorageMetricsView: View {
                 .font(Theme.bodyFont(size: 13))
                 .foregroundColor(Theme.dynamicMuted)
 
-            Text(viewModel.targets.isEmpty ? "—" : ByteCountFormatter.string(fromByteCount: viewModel.totalScannedStoredBytes, countStyle: .file))
+            Text(viewModel.targets.isEmpty ? "—" : ByteFormat.string(viewModel.totalScannedStoredBytes))
                 .font(Theme.headingFont(size: 32))
                 .foregroundColor(Theme.dynamicInk)
 

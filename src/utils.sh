@@ -7,7 +7,7 @@ log_action() {
 }
 
 log_dry() {
-  printf '  %b[%5s]%b %s\n' "$BLUE" "$1" "$NC" "$2"
+  printf '  %b[%9s]%b %s\n' "$BLUE" "$1" "$NC" "$2"
 }
 
 # Core sweep executor (Paths)
@@ -22,8 +22,10 @@ execute_sweep_path() {
       return 1
     fi
     if [ "$DRY_RUN" = true ]; then
-      local size
-      size=$(du -sh "$target_path" | awk '{print $1}') || return 1
+      local kb size
+      # du -k reports allocated 1024-byte blocks; units.py prints decimal GB like Finder.
+      kb=$(du -sk "$target_path" | awk '{print $1}') || return 1
+      size=$(python3 "$DIR/units.py" "$((kb * 1024))") || return 1
       log_dry "$size" "$description (directory size, not guaranteed savings)"
     else
       if [ "$RESCUE_MODE" = "true" ]; then

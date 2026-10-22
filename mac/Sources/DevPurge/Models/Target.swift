@@ -53,9 +53,6 @@ public struct Target: Identifiable, Codable, Sendable, Equatable {
 
     public var formattedSize: String {
         guard let size = sizeBytes else { return "—" }
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        formatter.allowedUnits = [.useBytes, .useKB, .useMB, .useGB]
-        return formatter.string(fromByteCount: size)
+        return ByteFormat.string(size)
     }
 }

@@ -2,6 +2,7 @@
 """Read-only inventory and conservative, explicitly selected cache cleanup."""
 import argparse
 import concurrent.futures
+import importlib.util
 from dataclasses import asdict, dataclass, field
 import json
 import os
@@ -14,6 +15,11 @@ import sys
 import tempfile
 import time
 import zipfile
+
+_units_spec = importlib.util.spec_from_file_location(
+    'devpurge_units', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'units.py'))
+units = importlib.util.module_from_spec(_units_spec)
+_units_spec.loader.exec_module(units)
 
 
 # Only web response/code caches, never profiles, cookies, or local storage.
@@ -347,7 +353,7 @@ def main():
         return
     print('STATUS       SIZE       CATEGORY     PATH / REASON')
     for target in sorted(targets, key=lambda t: t.size_bytes or 0, reverse=True):
-        size = f'{target.size_bytes / 1024**3:.2f} GiB' if target.size_bytes is not None else 'unknown'
+        size = units.fmt_bytes(target.size_bytes)
         print(f'{target.status:12} {size:10} {target.category:12} {target.path}')
         print('  ' + target.reason + ('; ' + target.size_error if target.size_error else ''))
         if args.execute and target.status == 'eligible':
