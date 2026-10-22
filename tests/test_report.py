@@ -55,6 +55,22 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(self.inventory.browser_targets()[0].status, 'in-use')
         self.assertTrue(path.exists())
 
+    def test_only_the_owning_apps_updater_blocks_cleanup(self):
+        self.app('Comet', 'ai.perplexity.comet')
+        self.marker('Library/Caches/Comet/Default/Cache/data')
+        # Regression: Tailscale's Sparkle updater marked every cache on the Mac in-use.
+        self.refresh(processes='/Applications/Tailscale.app/Contents/Frameworks/Sparkle.framework/'
+                               'Versions/B/Autoupdate io.tailscale.ipn.macsys /Users/me me\n'
+                               '/Users/me/Library/Caches/com.other.app.ShipIt/ShipIt')
+        self.assertEqual(self.inventory.browser_targets()[0].status, 'eligible')
+        for updater in ('/x/Sparkle.framework/Versions/B/Autoupdate ai.perplexity.comet /Users/me me',
+                        '/Users/me/Library/Caches/ai.perplexity.comet.ShipIt/ShipIt',
+                        '/Users/me/Library/Caches/x/org.sparkle-project.Sparkle/Launcher/a/Updater.app/'
+                        'Contents/MacOS/Updater ' + str(self.apps / 'Comet.app') + ' 1'):
+            self.refresh(processes=updater)
+            target = self.inventory.browser_targets()[0]
+            self.assertEqual((target.status, target.reason), ('in-use', 'An app updater is running'))
+
     def test_open_files_and_failed_checks_block_deletion(self):
         self.app('Comet', 'ai.perplexity.comet')
         marker = self.marker('Library/Caches/Comet/Default/Cache/data')

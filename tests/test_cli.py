@@ -89,6 +89,26 @@ class CliTests(unittest.TestCase):
         self.assertNotIn("pnpm ", self.logged())
         self.assertNotIn("cleanup finished", result.stdout)
 
+    def test_failed_module_does_not_abort_remaining_modules(self):
+        # Regression: a uv cache lock timeout stopped --all before node/lang/mac/system ran.
+        self.stub("uv", 2)
+        marker = self.marker("Library/Caches/node-gyp/sentinel")
+        result = self.run_cli("--all")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("[FAILED] Pruned uv cache", result.stderr)
+        self.assertIn("Failed: uv.", result.stderr)
+        for call in ("npm cache clean", "pnpm store prune", "pip3 cache purge", "go clean", "brew cleanup"):
+            self.assertIn(call, self.logged())
+        self.assertFalse(marker.exists())
+        self.assertNotIn("cleanup finished", result.stdout)
+
+    def test_refused_module_reports_failure_after_later_modules_run(self):
+        result = self.run_cli("--docker", "--node")  # no TTY and no --yes: docker refuses
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn("docker system prune", self.logged())
+        self.assertIn("npm cache clean", self.logged())
+        self.assertIn("Failed: docker.", result.stderr)
+
     def test_rescue_mode_skips_commands_and_preserves_collisions(self):
         self.config(rescue_mode=True)
         marker = self.marker("Library/Caches/node-gyp/sentinel")
