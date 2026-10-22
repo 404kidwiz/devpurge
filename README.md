@@ -112,7 +112,8 @@ uv pruning respects its cache lock and can wait when other uv processes are acti
 do not force it while those processes use the cache. AI history truncation also
 requires closing Claude sessions first.
 
-Cleanup stops and exits nonzero on command failures. Missing tools and rescue-mode
+A failed step stops its module; the other selected modules still run, the failed
+modules are listed, and the command exits nonzero. Missing tools and rescue-mode
 skips are explicitly reported. Earlier successful cleanup is not rolled back.
 
 ## Agent leftovers (Pro)

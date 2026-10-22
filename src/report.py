@@ -42,6 +42,15 @@ def version(value):
     return tuple(int(part) for part in value.split('.'))
 
 
+def updater_running(processes, bundle, app_paths):
+    # Only the owning app's updater can be rewriting its caches or installers.
+    # Sparkle and ShipIt name the app's bundle id or .app path in their command
+    # line; an unrelated updater (e.g. Tailscale's) must not block every target.
+    return any(any(marker in line for marker in ('Autoupdate', 'ShipIt', 'org.sparkle-project')) and
+               (bundle in line or any(path in line for path in app_paths))
+               for line in processes.splitlines())
+
+
 def app_info(path):
     with path.open('rb') as source:
         return plistlib.load(source)
@@ -109,8 +118,8 @@ class Inventory:
                 return 'review', 'Owning app could not be identified'
             if any(str(app) + '/' in self.processes for app, _ in self.apps[bundle]):
                 return 'in-use', 'Owning app is running'
-        if any(name in self.processes for name in ('Autoupdate', 'ShipIt', 'org.sparkle-project')):
-            return 'in-use', 'An app updater is running'
+            if updater_running(self.processes, bundle, [str(app) for app, _ in self.apps[bundle]]):
+                return 'in-use', 'An app updater is running'
         return None
 
     def allowed_path(self, path):
