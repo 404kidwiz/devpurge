@@ -54,7 +54,7 @@ public struct StorageBreakdownBarView: View {
 
                     Spacer()
 
-                    Text("Total: \(ByteCountFormatter.string(fromByteCount: totalBytes, countStyle: .file))")
+                    Text("Total: \(ByteFormat.string(totalBytes))")
                         .font(Theme.monoFont(size: 11))
                         .foregroundColor(Theme.dynamicMuted)
                 }
@@ -68,7 +68,7 @@ public struct StorageBreakdownBarView: View {
                             Rectangle()
                                 .fill(cat.color)
                                 .frame(width: barWidth, height: 10)
-                                .help("\(cat.title): \(ByteCountFormatter.string(fromByteCount: cat.bytes, countStyle: .file))")
+                                .help("\(cat.title): \(ByteFormat.string(cat.bytes))")
                         }
                     }
                     .clipShape(Capsule())
@@ -87,7 +87,7 @@ public struct StorageBreakdownBarView: View {
                                 .font(Theme.bodyFont(size: 12))
                                 .foregroundColor(Theme.dynamicInk)
 
-                            Text(ByteCountFormatter.string(fromByteCount: cat.bytes, countStyle: .file))
+                            Text(ByteFormat.string(cat.bytes))
                                 .font(Theme.monoFont(size: 11))
                                 .foregroundColor(Theme.dynamicMuted)
                         }

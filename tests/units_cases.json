@@ -1,0 +1,21 @@
+{
+  "about": "Shared byte-formatting cases. src/units.py, src/web/units.js and mac ByteFormat.swift must all produce these strings. Decimal units (1 GB = 10^9 bytes), like Finder.",
+  "cases": [
+    [null, "unknown"],
+    [0, "0 B"],
+    [512, "512 B"],
+    [999, "999 B"],
+    [1000, "1.0 KB"],
+    [1536, "1.5 KB"],
+    [999960, "1.0 MB"],
+    [189000000, "189.0 MB"],
+    [262800000, "262.8 MB"],
+    [999960000, "1.00 GB"],
+    [5197000000, "5.20 GB"],
+    [65945604096, "65.95 GB"],
+    [138290000000, "138.29 GB"],
+    [994660000000, "994.66 GB"],
+    [999996000000, "1.00 TB"],
+    [1290000000000, "1.29 TB"]
+  ]
+}
