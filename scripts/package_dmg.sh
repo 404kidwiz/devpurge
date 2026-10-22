@@ -4,7 +4,7 @@ set -eo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 APP_NAME="DevPurge"
-VERSION="3.3.0"
+VERSION="3.3.1"
 DMG_NAME="${APP_NAME}-${VERSION}.dmg"
 DMG_PATH="$ROOT_DIR/$DMG_NAME"
 STAGING_DIR="$ROOT_DIR/dist_staging"
