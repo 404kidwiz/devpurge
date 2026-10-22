@@ -80,4 +80,24 @@ final class DevPurgeEngineTests: XCTestCase {
         XCTAssertEqual(emptyReport.explanation, "")
     }
 
+    func testOnlyOwningAppsUpdaterBlocksCleanup() {
+        let bundle = "ai.perplexity.comet"
+        let appPaths = ["/Applications/Comet.app"]
+        // Regression: Tailscale's Sparkle updater marked every cache on the Mac in-use.
+        let unrelated = """
+        /Applications/Tailscale.app/Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate io.tailscale.ipn.macsys /Users/me me
+        /Users/me/Library/Caches/com.other.app.ShipIt/ShipIt
+        /Applications/Comet.app/Contents/MacOS/Comet
+        """
+        XCTAssertFalse(ProcessInspector.updaterRunning(processes: unrelated, bundle: bundle, appPaths: appPaths))
+
+        for owning in [
+            "/x/Sparkle.framework/Versions/B/Autoupdate ai.perplexity.comet /Users/me me",
+            "/Users/me/Library/Caches/ai.perplexity.comet.ShipIt/ShipIt",
+            "/Users/me/Library/Caches/x/org.sparkle-project.Sparkle/Launcher/a/Updater.app/Contents/MacOS/Updater /Applications/Comet.app 1",
+        ] {
+            XCTAssertTrue(ProcessInspector.updaterRunning(processes: owning, bundle: bundle, appPaths: appPaths), owning)
+        }
+    }
+
 }

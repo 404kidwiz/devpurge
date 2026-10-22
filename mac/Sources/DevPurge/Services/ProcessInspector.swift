@@ -101,15 +101,22 @@ public final class ProcessInspector: @unchecked Sendable {
             if isRunningInWorkspace || isRunningInPs {
                 return (.inUse, "Owning app is running")
             }
-        }
-
-        for updater in ["Autoupdate", "ShipIt", "org.sparkle-project"] {
-            if processes.contains(updater) {
+            if Self.updaterRunning(processes: processes, bundle: bundle, appPaths: appPaths) {
                 return (.inUse, "An app updater is running")
             }
         }
 
         return nil
+    }
+
+    /// Only the owning app's updater can be rewriting its caches or installers.
+    /// Sparkle and ShipIt name the app's bundle id or .app path in their command
+    /// line; an unrelated updater (e.g. Tailscale's) must not block every target.
+    public static func updaterRunning(processes: String, bundle: String, appPaths: [String]) -> Bool {
+        processes.split(separator: "\n").contains { line in
+            ["Autoupdate", "ShipIt", "org.sparkle-project"].contains { line.contains($0) } &&
+                (line.contains(bundle) || appPaths.contains { line.contains($0) })
+        }
     }
 
     public var isPackageManagerRunning: Bool {
