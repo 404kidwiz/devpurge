@@ -5,11 +5,11 @@ public struct DiskSpace: Sendable, Equatable {
     public let free: Int64
 
     public var formattedTotal: String {
-        ByteCountFormatter.string(fromByteCount: total, countStyle: .file)
+        ByteFormat.string(total)
     }
 
     public var formattedFree: String {
-        ByteCountFormatter.string(fromByteCount: free, countStyle: .file)
+        ByteFormat.string(free)
     }
 
     public var usedFraction: Double {

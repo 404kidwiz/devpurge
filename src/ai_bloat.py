@@ -18,6 +18,10 @@ _spec = importlib.util.spec_from_file_location(
     "devpurge_safety", os.path.join(os.path.dirname(os.path.abspath(__file__)), "safety.py"))
 safety = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(safety)
+_units_spec = importlib.util.spec_from_file_location(
+    "devpurge_units", os.path.join(os.path.dirname(os.path.abspath(__file__)), "units.py"))
+units = importlib.util.module_from_spec(_units_spec)
+_units_spec.loader.exec_module(units)
 
 CONFIRM_PHRASE = "clean ai"
 CRASH_PATTERN = re.compile(r"codex|cursor|claude", re.IGNORECASE)
@@ -90,10 +94,8 @@ def size_of(path):
 
 
 def human(n):
-    for unit in ("B", "K", "M", "G", "T"):
-        if n < 1024 or unit == "T":
-            return ("%d%s" % (n, unit)) if unit == "B" else ("%.1f%s" % (n, unit))
-        n /= 1024.0
+    # Kept as a name for agents.py; decimal units shared with the GUI and Mac app.
+    return units.fmt_bytes(n)
 
 
 def scan(home):
@@ -126,7 +128,7 @@ def print_report(items):
         print("[%s] reclaimable caches/logs/crash reports: %s" % (tool, human(eligible)))
         for i in rows:
             tag = "eligible" if i["eligible"] else "keep"
-            print("  %7s  %-8s %s" % (human(i["bytes"]), tag, i["label"]))
+            print("  %9s  %-8s %s" % (human(i["bytes"]), tag, i["label"]))
     total = sum(i["bytes"] for i in items if i["eligible"])
     print("Total reclaimable: %s (sizes are on-disk estimates)" % human(total))
 

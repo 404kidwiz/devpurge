@@ -386,7 +386,7 @@ public struct ContentView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(viewModel.selectedTargetIDs.isEmpty
                  ? "Nothing selected"
-                 : "\(viewModel.selectedTargetIDs.count) item\(viewModel.selectedTargetIDs.count == 1 ? "" : "s") selected (\(ByteCountFormatter.string(fromByteCount: viewModel.totalSelectedBytes, countStyle: .file)))")
+                 : "\(viewModel.selectedTargetIDs.count) item\(viewModel.selectedTargetIDs.count == 1 ? "" : "s") selected (\(ByteFormat.string(viewModel.totalSelectedBytes)))")
                 .font(Theme.headingFont(size: 14))
                 .fontWeight(.semibold)
                 .foregroundColor(Theme.dynamicInk)
