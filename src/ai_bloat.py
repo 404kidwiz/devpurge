@@ -78,18 +78,34 @@ def refusal_reason(path, home):
     return None
 
 
+def _allocated(st):
+    # st_blocks counts 512-byte units actually on disk (what du reports). st_size is the
+    # logical length: a sparse VM disk can claim 995 GB while using 66 GB.
+    blocks = getattr(st, "st_blocks", None)
+    return blocks * 512 if blocks is not None else st.st_size
+
+
 def size_of(path):
+    """Space on disk under path: allocated blocks, hard links counted once, links not followed."""
     if os.path.islink(path):
         return 0
-    if os.path.isfile(path):
-        return os.path.getsize(path)
-    total = 0
+    try:
+        if os.path.isfile(path):
+            return _allocated(os.lstat(path))
+    except OSError:
+        return 0
+    total, seen = 0, set()
     for root, _dirs, files in os.walk(path):
         for name in files:
             try:
-                total += os.lstat(os.path.join(root, name)).st_size
+                st = os.lstat(os.path.join(root, name))
             except OSError:
-                pass
+                continue
+            if st.st_nlink > 1:
+                if (st.st_dev, st.st_ino) in seen:
+                    continue
+                seen.add((st.st_dev, st.st_ino))
+            total += _allocated(st)
     return total
 
 

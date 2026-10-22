@@ -2,7 +2,7 @@
 set -eo pipefail
 # DevPurge - The cinematic, zero-bs cache sweeper for modern developers.
 
-VERSION="3.3.0"
+VERSION="3.3.1"
 # Resolve the installed symlink before locating the adjacent source tree.
 SCRIPT_PATH="${BASH_SOURCE[0]}"
 while [ -L "$SCRIPT_PATH" ]; do

@@ -92,3 +92,41 @@ class AiBloatTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Cursor", result.stdout)
         self.assertEqual((self.home / ".claude/history.jsonl").read_text(), "x" * 100)
+
+
+class SizeOnDiskTests(unittest.TestCase):
+    """--ai and --agents report space on disk, not logical file length (2026-10-21 test run:
+    Docker's sparse disk read 995 GB logical for 66 GB used)."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix="devpurge-size-")
+        self.addCleanup(self.temp.cleanup)
+        self.dir = Path(self.temp.name)
+
+    def test_sparse_file_counts_allocated_blocks_not_logical_length(self):
+        sparse = self.dir / "disk.img"
+        with open(sparse, "wb") as f:
+            f.seek(200 * 1000 * 1000)
+            f.write(b"x")
+        if sparse.stat().st_blocks * 512 >= sparse.stat().st_size:
+            self.skipTest("this filesystem does not create sparse files")
+        self.assertLess(ai_bloat.size_of(str(sparse)), 10 * 1000 * 1000)
+        self.assertLess(ai_bloat.size_of(str(self.dir)), 10 * 1000 * 1000)
+
+    def test_hard_links_are_counted_once(self):
+        original = self.dir / "a.bin"
+        original.write_bytes(os.urandom(2 * 1000 * 1000))
+        os.link(original, self.dir / "b.bin")
+        one = ai_bloat.size_of(str(original))
+        self.assertGreaterEqual(one, 2 * 1000 * 1000)
+        self.assertEqual(ai_bloat.size_of(str(self.dir)), one)
+
+    def test_symlinks_are_not_followed(self):
+        target = self.dir / "outside"
+        target.mkdir()
+        (target / "big.bin").write_bytes(os.urandom(1000 * 1000))
+        inside = self.dir / "cache"
+        inside.mkdir()
+        (inside / "link").symlink_to(target, target_is_directory=True)
+        self.assertEqual(ai_bloat.size_of(str(inside / "link")), 0)
+        self.assertLess(ai_bloat.size_of(str(inside)), 100 * 1000)
