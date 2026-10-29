@@ -178,6 +178,15 @@ SSH keys, Terraform state, service account JSON, local databases and more). `.en
 This is a Pro feature. The CLI does not check a license yet; in the Mac app the plan is that the
 report is free and the hook installers are licensed.
 
+## Leaked-key sweep (Pro)
+
+`devpurge --key-sweep [--json]` reads `.env` files and agent config folders (`~/.codex`, `~/.claude`,
+`~/.config/opencode`, `~/.cursor`, `~/.aider*`, and project `.env` files under the agent roots) and
+reports provider API keys with masked values only (first 4 and last 2 characters). It prints the
+official page to rotate each key and a spend-cap reminder. It deletes nothing, makes no network
+calls and never uses the keys it finds. Exit code 1 means keys were found. See
+[docs/key-sweep.md](docs/key-sweep.md). Pro feature; the CLI does not check a license yet.
+
 ## Install the CLI
 
 ```bash
