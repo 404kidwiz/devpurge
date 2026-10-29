@@ -82,10 +82,10 @@ Currently, `scripts/build_mac_app.sh` uses ad-hoc code signing (`codesign --forc
 
 ## 5. Landing Page Deployment & SEO / Social Verification
 
-- [ ] **Deploy `site/` Static Assets**
-  - Deploy `site/` to Cloudflare Pages, Vercel, or GitHub Pages with immutable cache headers on `site/fonts/*.woff2` and `site/assets/*.webp`.
-- [ ] **Verify OpenGraph & Metadata**
-  - Set `<link rel="canonical" href="https://devpurge.dev/">` and verify `og:image` (`assets/og.jpg`) uses an absolute production URL so X/Twitter, iMessage, Slack, and Discord unfurl the Zine preview card cleanly.
+- [x] **Deploy `site/` Static Assets**
+  - Deployed `site/` live to GitHub Pages at `https://404kidwiz.github.io/devpurge/` (`gh-pages` branch + `.github/workflows/pages.yml`) and set the GitHub repository homepage URL.
+- [x] **Verify OpenGraph & Metadata**
+  - Configured `<link rel="canonical" href="https://404kidwiz.github.io/devpurge/">` and absolute `og:image` / `twitter:image` (`https://404kidwiz.github.io/devpurge/assets/og.jpg`) in `site/index.html`.
 
 ---
 
