@@ -21,17 +21,14 @@ This checklist covers everything required to take **DevPurge** (`DevPurge.app` n
 
 ## 2. Lemon Squeezy Store & Licensing Setup
 
-Currently, `LicenseService.Config` in [`mac/Sources/DevPurge/Services/LicenseService.swift`](file:///Users/you/Desktop/404%20Projects/devpurge/mac/Sources/DevPurge/Services/LicenseService.swift) has `expectedStoreId: nil` and `expectedProductId: nil` (with a debug assertion reminder). Before shipping the production DMG:
-
-- [ ] **Create Product in Lemon Squeezy**
-  - Create product **"DevPurge for Mac"** ($19 one-time, license keys enabled, activation limit = `2` instances per key, 14-day refund window).
-  - Copy the numeric **Store ID** and **Product ID** from the Lemon Squeezy dashboard.
-- [ ] **Lock Store & Product IDs in `LicenseService.swift`**
-  - Set `expectedStoreId = <YOUR_STORE_ID>` and `expectedProductId = <YOUR_PRODUCT_ID>` in `LicenseService.Config` so keys from other Lemon Squeezy stores cannot activate `DevPurge.app`.
-  - Set `checkoutURL` in `LicenseService.Config` to your live Lemon Squeezy checkout URL (e.g., `https://store.lemonsqueezy.com/checkout/buy/...`).
-- [ ] **End-to-End License QA**
-  - Test activating a real test license key (`activate`), verifying Keychain persistence (`com.404kidwiz.devpurge.license`), testing offline grace period (14 days), and deactivating (`deactivate`).
-  - Confirm the 3-free-cleanups counter (`freeCleanupsRemaining`) decrements only on completed cleanups (`deletedCount > 0`) and unlocks unlimited cleanups immediately upon activation.
+- [x] **Create Store & Product in Lemon Squeezy**
+  - Store: **404 Technologies** (`https://404technologies.lemonsqueezy.com`, `storeID = 510216`).
+  - Product: **DevPurge for Mac** ($19.00 one-time, license keys enabled, activation limit = `2` instances per key, `productID = 1483717`).
+  - Checkout URL: `https://404technologies.lemonsqueezy.com/checkout/buy/3c0d0268-398f-489a-854a-cb1ea34f136b`
+- [x] **Lock Store & Product IDs in `LicenseConfig.swift`**
+  - Set `storeID = 510216`, `productID = 1483717`, and `checkoutURL` in [`mac/Sources/DevPurge/Services/LicenseConfig.swift`](file:///Users/you/Desktop/404%20Projects/devpurge/mac/Sources/DevPurge/Services/LicenseConfig.swift) and [`site/index.html`](file:///Users/you/Desktop/404%20Projects/devpurge/site/index.html).
+- [ ] **Activate Live Store Mode in Lemon Squeezy**
+  - Complete the quick identity verification step at `https://app.lemonsqueezy.com/settings/general/identity` when ready to accept live customer payments (Test Mode works immediately).
 
 ---
 
@@ -51,15 +48,14 @@ Currently, `scripts/build_mac_app.sh` uses ad-hoc code signing (`codesign --forc
     codesign --verify --deep --strict --verbose=2 DevPurge.app
     ```
 - [ ] **Package & Notarize DMG / ZIP**
-  - Create a compressed DMG or ZIP for notarization:
+  - Run `scripts/release_mac.sh` with `DEVELOPER_ID_APP` and `NOTARY_PROFILE` set, or manually notarize:
     ```bash
-    ditto -c -k --keepParent DevPurge.app DevPurge-1.0.0.zip
-    xcrun notarytool submit DevPurge-1.0.0.zip \
+    ditto -c -k --keepParent DevPurge.app DevPurge-3.3.1.zip
+    xcrun notarytool submit DevPurge-3.3.1.zip \
       --keychain-profile "AC_PASSWORD" \
       --wait
     xcrun stapler staple DevPurge.app
     ```
-  - Create the distributable `DevPurge-1.0.0.dmg` containing the stapled `DevPurge.app` and an `/Applications` symlink, then sign and notarize/staple the `.dmg` itself.
   - Verify Gatekeeper acceptance on a clean Mac:
     ```bash
     spctl -a -t exec -vv DevPurge.app
@@ -69,9 +65,9 @@ Currently, `scripts/build_mac_app.sh` uses ad-hoc code signing (`codesign --forc
 
 ## 4. Distribution Channels (GitHub Releases, Homebrew & PyPI)
 
-- [ ] **GitHub Release (`v1.0.0`)**
-  - Tag `v1.0.0` and upload `DevPurge-1.0.0.dmg` + `SHA256SUMS.txt`.
-  - Update the **"Get for Mac"** CTA link in `site/index.html` to point directly to the Lemon Squeezy checkout or direct DMG trial download.
+- [x] **GitHub Release (`v3.3.1`)**
+  - Tagged `v3.3.1` and uploaded `DevPurge-3.3.1.dmg` + `SHA256SUMS.txt` at `https://github.com/404kidwiz/devpurge/releases/tag/v3.3.1`.
+  - Updated the **"Get for Mac"** and **"Download for Mac"** CTA links in `site/index.html` to point directly to the Lemon Squeezy checkout and `v3.3.1` DMG download.
 - [ ] **PyPI Package (`pipx install devpurge` / `uvx devpurge`)**
   - Build and verify wheel + sdist:
     ```bash

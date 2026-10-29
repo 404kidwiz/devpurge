@@ -43,9 +43,9 @@ public struct LicenseConfig: Sendable, Equatable {
         let debugKeys = false
         #endif
         return LicenseConfig(
-            storeID: 0,    // TODO: Lemon Squeezy store ID (public)
-            productID: 0,  // TODO: Lemon Squeezy product ID (public)
-            checkoutURL: URL(string: "https://github.com/404kidwiz/devpurge#devpurge-for-mac"), // TODO: checkout URL
+            storeID: 510216,
+            productID: 1483717,
+            checkoutURL: URL(string: "https://404technologies.lemonsqueezy.com/checkout/buy/3c0d0268-398f-489a-854a-cb1ea34f136b"),
             allowDebugKeys: debugKeys
         )
     }()
