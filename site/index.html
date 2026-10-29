@@ -105,6 +105,7 @@
       <a class="btn btn--pink btn--lg" href="https://github.com/404kidwiz/devpurge/releases/download/v3.3.1/DevPurge-3.3.1.dmg" aria-label="Download free: DevPurge 3.3.1 for macOS">Download free</a>
       <a class="btn btn--ghost" href="https://404technologies.lemonsqueezy.com/checkout/buy/3c0d0268-398f-489a-854a-cb1ea34f136b">Buy license · $19</a>
     </div>
+    <p class="never" data-reveal style="--d:620ms;--r:0deg"><span class="never__lead">Never touches</span> <a href="#safe">home folders · <code>.git</code> · Keychains · Xcode Archives</a></p>
 
     <div class="hero__art">
       <svg class="arrow arrow--hero" viewBox="0 0 220 140" aria-hidden="true"><path class="draw" d="M10 130C40 70 110 40 205 30" fill="none" stroke="var(--blue)" stroke-width="6" stroke-linecap="round"/><path class="draw" d="M175 12l32 18-26 26" fill="none" stroke="var(--blue)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -116,6 +117,41 @@
       </div>
       <img class="laptop" fetchpriority="high" decoding="async" src="assets/hero-laptop.webp" alt="Folders tipping off a laptop into a trash can" width="900" height="810" data-speed="-0.05">
     </div>
+  </div>
+</section>
+
+<!-- 1b · PROOF -->
+<section class="proof" aria-label="DevPurge facts">
+  <ul class="proof__list">
+    <li data-reveal style="--d:0ms;--r:-2deg"><strong>12</strong> cache modules</li>
+    <li data-reveal style="--d:70ms;--r:1.5deg"><strong>136</strong> automated tests</li>
+    <li data-reveal style="--d:140ms;--r:-1deg"><strong>0</strong> network calls to scan</li>
+    <li data-reveal style="--d:210ms;--r:2deg">Trash with <strong>Put Back</strong></li>
+    <li data-reveal style="--d:280ms;--r:-1.5deg">macOS <strong>14+</strong></li>
+  </ul>
+</section>
+
+<!-- 1c · REAL APP -->
+<section class="demo" id="demo" aria-labelledby="demo-title">
+  <div class="dots dots--pink" style="--s:380px;top:60px;right:-80px"></div>
+  <div class="dots dots--blue" style="--s:300px;bottom:40px;left:-90px"></div>
+  <h2 id="demo-title" class="demo__title" data-reveal style="--r:-1.5deg"><span class="inked">See the real app</span></h2>
+  <div class="demo__body" data-demo>
+    <div class="demo__steps" role="tablist" aria-label="DevPurge walkthrough" aria-orientation="vertical">
+      <button type="button" class="demo__step" role="tab" id="demo-tab-1" aria-controls="demo-panel" aria-selected="true" data-step="1"><em>1</em> Scan<small>Every cache, sized. Nothing changes yet.</small><i class="demo__bar" aria-hidden="true"></i></button>
+      <button type="button" class="demo__step" role="tab" id="demo-tab-2" aria-controls="demo-panel" aria-selected="false" tabindex="-1" data-step="2"><em>2</em> Review<small>One final check, path by path.</small><i class="demo__bar" aria-hidden="true"></i></button>
+      <button type="button" class="demo__step" role="tab" id="demo-tab-3" aria-controls="demo-panel" aria-selected="false" tabindex="-1" data-step="3"><em>3</em> Done<small>Moved to Trash. Put Back still works.</small><i class="demo__bar" aria-hidden="true"></i></button>
+    </div>
+    <figure class="demo__window" id="demo-panel" role="tabpanel" tabindex="0" aria-labelledby="demo-tab-1" data-step="1" data-reveal style="--r:.6deg">
+      <span class="tape tape--yellow" style="--r:-5deg;top:-16px;left:8%;width:150px"></span>
+      <span class="demo__chrome" aria-hidden="true"><i></i><i></i><i></i></span>
+      <div class="demo__screen">
+        <img class="demo__shot demo__shot--scan" data-shot="dashboard" src="assets/app/zine-dashboard.webp" width="1020" height="740" loading="lazy" decoding="async" alt="DevPurge dashboard after a scan: 138 GB free, 34.6 GB eligible, Xcode DerivedData and npm cache ticked and marked safe.">
+        <img class="demo__shot demo__shot--review" data-shot="review" aria-hidden="true" src="assets/app/zine-review.webp" width="520" height="574" loading="lazy" decoding="async" alt="Review sheet listing three selected paths, a 31.5 GB total and a Move files to Trash checkbox.">
+        <img class="demo__shot demo__shot--done" data-shot="done" aria-hidden="true" src="assets/app/zine-done.webp" width="1020" height="453" loading="lazy" decoding="async" alt="Results: 31.5 GB in the Trash, each path marked moved to Trash, Gradle kept because it was in use.">
+      </div>
+      <figcaption>Real DevPurge screens, sample data.</figcaption>
+    </figure>
   </div>
 </section>
 
@@ -279,7 +315,8 @@
         <p class="receipt__fine">14-day refund. Sold via Lemon Squeezy.</p>
         <div class="barcode" data-barcode aria-hidden="true"></div>
       </div></div>
-      <a class="btn-sticker torn-bg" href="https://404technologies.lemonsqueezy.com/checkout/buy/3c0d0268-398f-489a-854a-cb1ea34f136b"><span class="inked">Buy · $19</span></a>
+      <a class="btn-sticker torn-bg" href="https://github.com/404kidwiz/devpurge/releases/download/v3.3.1/DevPurge-3.3.1.dmg" aria-label="Download free: DevPurge 3.3.1 for macOS"><span class="inked">Download free</span></a>
+      <p class="get__buy"><a class="btn btn--ghost" href="https://404technologies.lemonsqueezy.com/checkout/buy/3c0d0268-398f-489a-854a-cb1ea34f136b">Buy license · $19</a><span>after your 3 free cleanups</span></p>
     </div>
     <div class="cli-col">
       <div class="handnote">
@@ -293,7 +330,7 @@
           <span class="cli-card__stamp" data-cli-stamp aria-live="polite">COPIED!</span>
         </div>
         <div class="cli-modes" role="tablist" aria-label="CLI command presets">
-          <button type="button" class="cli-mode" role="tab" aria-selected="true" data-cli-cmd="python3 -m devpurge --dry-run" data-cli-note="Read-only scan across all 9 developer cache modules. Nothing is modified.">Scan only</button>
+          <button type="button" class="cli-mode" role="tab" aria-selected="true" data-cli-cmd="python3 -m devpurge --dry-run" data-cli-note="Read-only scan across all 12 developer cache modules. Nothing is modified.">Scan only</button>
           <button type="button" class="cli-mode" role="tab" aria-selected="false" data-cli-cmd="python3 -m devpurge --all" data-cli-note="Runs every module with interactive confirmation before any cleanup.">All modules</button>
           <button type="button" class="cli-mode" role="tab" aria-selected="false" data-cli-cmd="python3 -m devpurge --node --uv" data-cli-note="Targets npm/pnpm/Yarn caches, stale node_modules, and uv Python environments.">Node + uv</button>
           <button type="button" class="cli-mode" role="tab" aria-selected="false" data-cli-cmd="python3 -m devpurge --mac" data-cli-note="Clears Xcode DerivedData, Simulator caches, CocoaPods, and SwiftPM caches.">Xcode + Mac</button>
@@ -303,7 +340,7 @@
           <code class="cli-box__code" data-cli-output>python3 -m devpurge --dry-run</code>
           <button type="button" class="cli-box__copy" data-cli-copy aria-label="Copy CLI command">Copy</button>
         </div>
-        <p class="cli-card__note" data-cli-desc>Read-only scan across all 9 developer cache modules. Nothing is modified.</p>
+        <p class="cli-card__note" data-cli-desc>Read-only scan across all 12 developer cache modules. Nothing is modified.</p>
       </div>
     </div>
   </div>

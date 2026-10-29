@@ -47,7 +47,8 @@ final class PaletteSnapshotTests: XCTestCase {
 
         let vm = DevPurgeViewModel()
         vm.diskSpace = DiskSpace(total: 994_660_000_000, free: 138_290_000_000)
-        let home = NSHomeDirectory()
+        // Marketing renders set DEVPURGE_SNAPSHOT_HOME so real usernames never ship in images.
+        let home = ProcessInfo.processInfo.environment["DEVPURGE_SNAPSHOT_HOME"] ?? NSHomeDirectory()
         vm.targets = [
             Target(id: "a", path: "\(home)/Library/Developer/Xcode/DerivedData", category: "review", status: .eligible, reason: "Rebuilt automatically by Xcode", sizeBytes: 18_400_000_000),
             Target(id: "b", path: "\(home)/.npm/_cacache", category: "oldstores", status: .eligible, reason: "npm downloads it again on demand", sizeBytes: 7_200_000_000),
