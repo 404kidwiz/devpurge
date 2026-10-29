@@ -6,17 +6,36 @@
 
   // Palette switcher (Zine, Citrus, Blacklight, Ember) saved to localStorage.
   const swatches = [...document.querySelectorAll('[data-set-palette]')];
+  const paletteMenu = document.querySelector('[data-palette-menu]');
+  const paletteToggle = paletteMenu?.querySelector('.palette__toggle');
+  const palettePop = paletteMenu?.querySelector('.palette__pop');
   const applyPalette = (id) => {
     document.documentElement.dataset.palette = id;
-    swatches.forEach((btn) => btn.setAttribute('aria-pressed', String(btn.dataset.setPalette === id)));
+    swatches.forEach((btn) => {
+      const on = btn.dataset.setPalette === id;
+      btn.setAttribute('aria-pressed', String(on));
+      // The toggle shows the active palette's ring.
+      if (on && paletteToggle) paletteToggle.firstElementChild.style.cssText = btn.firstElementChild.style.cssText;
+    });
     try { localStorage.setItem('devpurge.palette', id); } catch {}
   };
+  const setPaletteOpen = (open) => {
+    if (!paletteToggle) return;
+    paletteToggle.setAttribute('aria-expanded', String(open));
+    palettePop.hidden = !open;
+  };
+  paletteToggle?.addEventListener('click', () => setPaletteOpen(palettePop.hidden));
+  document.addEventListener('click', (e) => { if (paletteMenu && !paletteMenu.contains(e.target)) setPaletteOpen(false); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && palettePop && !palettePop.hidden) { setPaletteOpen(false); paletteToggle.focus(); }
+  });
   try {
     const saved = localStorage.getItem('devpurge.palette');
     if (saved && ['zine', 'citrus', 'blacklight', 'ember'].includes(saved)) {
       applyPalette(saved);
     }
   } catch {}
+  if (!paletteToggle?.firstElementChild.style.cssText) applyPalette(document.documentElement.dataset.palette || 'zine');
   swatches.forEach((btn) => btn.addEventListener('click', () => applyPalette(btn.dataset.setPalette)));
 
   // Seeded RNG so torn edges and barcode look the same on every load.

@@ -329,3 +329,11 @@ Round 2 of `site/` (Zine): added hero CTA, FAQ, refund/footer links, favicon and
 ### Mac app: Zine restyle with 4 palettes
 
 The SwiftUI app (`mac/`) now matches the Zine site: sticky-note metrics, paper inventory rows with SAFE / IN USE stamps, a receipt-style review sheet, a "Space back." result card and a matching menu-bar popover. Fonts are Lilita One and Courier Prime (OFL, `mac/Resources/Fonts`, copied into the app bundle by `scripts/build_mac_app.sh`). Four palettes, picked from the Palette menu, Settings (Cmd-,) or the popover swatches, saved per Mac: Zine and Citrus (light), Blacklight and Ember (dark). `Theme.swift` holds semantic tokens; views never use raw colours. `PaletteSnapshotTests` checks WCAG contrast for every palette and, with `DEVPURGE_SNAPSHOT_DIR` set, writes screenshots of each screen per palette. The cleanup result now reports Trash moves ("in the Trash, empty to free") separately from measured freed space. Screenshots are in `design-directions/zine-app-build/`. Not yet checked by hand in the running app.
+
+## Landing page critique fixes (2026-10-29)
+- Nav: links no longer wrap ("try it"), centred on one line with logo/button; logo and nav button use Lilita One; pink dashes removed from the button.
+- Palette swatches moved into a single 44px toggle with a "Pick a palette" popover (Esc / outside click closes).
+- CTA labels unified: "Download free" (DMG) in nav + hero, "Buy license · $19" secondary button in hero, "Buy · $19" receipt sticker (checkout).
+- Mobile nav: 200px → 104px, two rows max down to 320px; logo tape no longer clips the wordmark.
+- Hero scribble moved off the buy button; CLI card text enlarged (chips 15px, command 15–18px); pink "Hands off" stamp darkened for contrast.
+- Verified with Playwright at 1440/900/390/320: no console errors, no horizontal scroll, palette menu works.

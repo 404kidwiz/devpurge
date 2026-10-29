@@ -46,22 +46,27 @@
       <li><a href="#safe">safe</a></li>
       <li><a href="#price">price</a></li>
     </ul>
-    <div class="palette-swatches" role="group" aria-label="Choose app palette">
-      <button type="button" class="swatch" data-set-palette="zine" aria-pressed="true" title="Zine · Light (pink, cobalt, yellow)" aria-label="Zine palette">
-        <span class="swatch__ring" style="--a:#FFD21F;--b:#FF4FA3;--c:#2B3FE0;--bg:#F6EFE0"></span>
+    <div class="palette" data-palette-menu>
+      <button type="button" class="palette__toggle" aria-expanded="false" aria-controls="palette-pop" aria-label="Change page colours">
+        <span class="swatch__ring" aria-hidden="true"></span>
       </button>
-      <button type="button" class="swatch" data-set-palette="citrus" aria-pressed="false" title="Citrus · Light (orange, violet, teal)" aria-label="Citrus palette">
-        <span class="swatch__ring" style="--a:#B8E35A;--b:#6A48E0;--c:#FF6A13;--bg:#EFF3E1"></span>
-      </button>
-      <button type="button" class="swatch" data-set-palette="blacklight" aria-pressed="false" title="Blacklight · Dark (lime, magenta, cyan)" aria-label="Blacklight palette">
-        <span class="swatch__ring" style="--a:#C6FF3D;--b:#FF5FD2;--c:#39D9FF;--bg:#0F1016"></span>
-      </button>
-      <button type="button" class="swatch" data-set-palette="ember" aria-pressed="false" title="Ember · Dark (amber, coral, sage)" aria-label="Ember palette">
-        <span class="swatch__ring" style="--a:#FFB238;--b:#FF7A66;--c:#86CFBA;--bg:#1D1310"></span>
-      </button>
+      <div class="palette__pop" id="palette-pop" role="group" aria-label="Choose palette" hidden>
+        <p class="palette__label">Pick a palette</p>
+        <button type="button" class="swatch" data-set-palette="zine" aria-pressed="true" title="Zine · Light (pink, cobalt, yellow)" aria-label="Zine palette">
+          <span class="swatch__ring" style="--a:#FFD21F;--b:#FF4FA3;--c:#2B3FE0;--bg:#F6EFE0"></span>
+        </button>
+        <button type="button" class="swatch" data-set-palette="citrus" aria-pressed="false" title="Citrus · Light (orange, violet, teal)" aria-label="Citrus palette">
+          <span class="swatch__ring" style="--a:#B8E35A;--b:#6A48E0;--c:#FF6A13;--bg:#EFF3E1"></span>
+        </button>
+        <button type="button" class="swatch" data-set-palette="blacklight" aria-pressed="false" title="Blacklight · Dark (lime, magenta, cyan)" aria-label="Blacklight palette">
+          <span class="swatch__ring" style="--a:#C6FF3D;--b:#FF5FD2;--c:#39D9FF;--bg:#0F1016"></span>
+        </button>
+        <button type="button" class="swatch" data-set-palette="ember" aria-pressed="false" title="Ember · Dark (amber, coral, sage)" aria-label="Ember palette">
+          <span class="swatch__ring" style="--a:#FFB238;--b:#FF7A66;--c:#86CFBA;--bg:#1D1310"></span>
+        </button>
+      </div>
     </div>
-    <a class="btn btn--pink btn--sm" href="#price">Get for Mac</a>
-    <span class="dashes dashes--pink" aria-hidden="true"><i></i><i></i><i></i></span>
+    <a class="btn btn--pink btn--sm" href="https://github.com/404kidwiz/devpurge/releases/download/v3.3.1/DevPurge-3.3.1.dmg" aria-label="Download free: DevPurge for macOS">Download<span class="nav-free">free</span></a>
   </nav>
 </header>
 
@@ -97,8 +102,8 @@
     </h1>
     <p class="tagline torn" data-reveal style="--d:480ms;--r:-.6deg"><span>Scan first. Review every path. Nothing leaves your Mac.</span></p>
     <div class="cta-row" data-reveal style="--d:560ms;--r:0deg">
-      <a class="btn btn--pink btn--lg" href="https://github.com/404kidwiz/devpurge/releases/download/v3.3.1/DevPurge-3.3.1.dmg" aria-label="Download DevPurge 3.3.1 DMG for macOS">Download for Mac</a>
-      <a class="cta-link" href="https://404technologies.lemonsqueezy.com/checkout/buy/3c0d0268-398f-489a-854a-cb1ea34f136b">Buy license ($19) &rarr;</a>
+      <a class="btn btn--pink btn--lg" href="https://github.com/404kidwiz/devpurge/releases/download/v3.3.1/DevPurge-3.3.1.dmg" aria-label="Download free: DevPurge 3.3.1 for macOS">Download free</a>
+      <a class="btn btn--ghost" href="https://404technologies.lemonsqueezy.com/checkout/buy/3c0d0268-398f-489a-854a-cb1ea34f136b">Buy license · $19</a>
     </div>
 
     <div class="hero__art">
@@ -274,7 +279,7 @@
         <p class="receipt__fine">14-day refund. Sold via Lemon Squeezy.</p>
         <div class="barcode" data-barcode aria-hidden="true"></div>
       </div></div>
-      <a class="btn-sticker torn-bg" href="https://404technologies.lemonsqueezy.com/checkout/buy/3c0d0268-398f-489a-854a-cb1ea34f136b"><span class="inked">Get for Mac</span></a>
+      <a class="btn-sticker torn-bg" href="https://404technologies.lemonsqueezy.com/checkout/buy/3c0d0268-398f-489a-854a-cb1ea34f136b"><span class="inked">Buy · $19</span></a>
     </div>
     <div class="cli-col">
       <div class="handnote">
