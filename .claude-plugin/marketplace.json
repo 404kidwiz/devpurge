@@ -1,0 +1,15 @@
+{
+  "name": "devpurge",
+  "description": "DevPurge plugins for Claude Code",
+  "owner": {
+    "name": "404kidwiz",
+    "url": "https://github.com/404kidwiz"
+  },
+  "plugins": [
+    {
+      "name": "devpurge",
+      "source": "./claude-plugin",
+      "description": "Find and safely clear developer cache bloat with the free DevPurge CLI."
+    }
+  ]
+}
