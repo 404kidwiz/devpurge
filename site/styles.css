@@ -1074,3 +1074,4 @@ html[data-palette="ember"] .proof__list strong { color: var(--paper); }
   .field__bar { grid-template-columns: 1fr auto; }
   .field__bar i { grid-column: 1 / -1; grid-row: 2; }
 }
+.faq__grid > .qa:last-child:nth-child(odd) { grid-column: 1 / -1; }

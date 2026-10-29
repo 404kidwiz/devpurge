@@ -15,3 +15,9 @@
    activate a Lemon Squeezy test-mode key, clean, deactivate.
 6. Upload the DMG to the Lemon Squeezy product and attach it plus the `.sha256`
    file to the GitHub Release.
+7. Publish the same DMG and `SHA256SUMS.txt` to the public downloads repo, then
+   update the three download links in `site/index.html`:
+   ```bash
+   gh release create v<version> --repo 404kidwiz/devpurge-releases \
+     --title "DevPurge <version>" dist/DevPurge-<version>.dmg SHA256SUMS.txt
+   ```

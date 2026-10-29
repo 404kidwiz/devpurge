@@ -26,7 +26,7 @@ This checklist covers everything required to take **DevPurge** (`DevPurge.app` n
   - Product: **DevPurge for Mac** ($19.00 one-time, license keys enabled, activation limit = `2` instances per key, `productID = 1483717`).
   - Checkout URL: `https://404technologies.lemonsqueezy.com/checkout/buy/3c0d0268-398f-489a-854a-cb1ea34f136b`
 - [x] **Lock Store & Product IDs in `LicenseConfig.swift`**
-  - Set `storeID = 510216`, `productID = 1483717`, and `checkoutURL` in [`mac/Sources/DevPurge/Services/LicenseConfig.swift`](file:///Users/you/Desktop/404%20Projects/devpurge/mac/Sources/DevPurge/Services/LicenseConfig.swift) and [`site/index.html`](file:///Users/you/Desktop/404%20Projects/devpurge/site/index.html).
+  - Set `storeID = 510216`, `productID = 1483717`, and `checkoutURL` in [`mac/Sources/DevPurge/Services/LicenseConfig.swift`](mac/Sources/DevPurge/Services/LicenseConfig.swift) and [`site/index.html`](site/index.html).
 - [ ] **Activate Live Store Mode in Lemon Squeezy**
   - Complete the quick identity verification step at `https://app.lemonsqueezy.com/settings/general/identity` when ready to accept live customer payments (Test Mode works immediately).
 
