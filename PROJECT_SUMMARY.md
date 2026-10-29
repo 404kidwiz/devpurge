@@ -336,4 +336,5 @@ The SwiftUI app (`mac/`) now matches the Zine site: sticky-note metrics, paper i
 - CTA labels unified: "Download free" (DMG) in nav + hero, "Buy license · $19" secondary button in hero, "Buy · $19" receipt sticker (checkout).
 - Mobile nav: 200px → 104px, two rows max down to 320px; logo tape no longer clips the wordmark.
 - Hero scribble moved off the buy button; CLI card text enlarged (chips 15px, command 15–18px); pink "Hands off" stamp darkened for contrast.
+- Hero sized by viewport height on laptop screens (≤1000px tall): both CTAs above the fold at 1280×800, 1440×900, 1536×864, 1920×1080.
 - Verified with Playwright at 1440/900/390/320: no console errors, no horizontal scroll, palette menu works.
