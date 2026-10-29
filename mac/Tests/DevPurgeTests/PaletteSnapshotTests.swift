@@ -22,6 +22,8 @@ final class PaletteSnapshotTests: XCTestCase {
                 ("onNoteC/noteC", p.onNoteC, p.noteC, 4.5),
                 ("accent/surface (stamps)", p.accent, p.surface, 3),
                 ("danger/surface (stamps)", p.danger, p.surface, 3),
+                ("done stamp/noteA", p.stampOnNoteA(success: true), p.noteA, 3),
+                ("partly-done stamp/noteA", p.stampOnNoteA(success: false), p.noteA, 3),
             ]
             for (name, fg, bg, minimum) in pairs {
                 let ratio = contrast(fg, bg)
@@ -99,9 +101,17 @@ final class PaletteSnapshotTests: XCTestCase {
         window.contentView = host
         host.layoutSubtreeIfNeeded()
         RunLoop.current.run(until: Date().addingTimeInterval(0.25))
-        guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else {
+        // DEVPURGE_SNAPSHOT_SCALE=2 renders retina-sharp images for the website.
+        let scale = Double(ProcessInfo.processInfo.environment["DEVPURGE_SNAPSHOT_SCALE"] ?? "") ?? 1
+        guard let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: Int(host.bounds.width * scale), pixelsHigh: Int(host.bounds.height * scale),
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        ) else {
             XCTFail("Could not render \(url.lastPathComponent)"); return
         }
+        rep.size = host.bounds.size
         host.cacheDisplay(in: host.bounds, to: rep)
         guard let png = rep.representation(using: .png, properties: [:]) else {
             XCTFail("Could not encode \(url.lastPathComponent)"); return

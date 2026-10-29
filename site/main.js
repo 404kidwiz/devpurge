@@ -19,8 +19,9 @@
       if (on && paletteToggle) paletteToggle.firstElementChild.style.cssText = btn.firstElementChild.style.cssText;
     });
     // App screenshots are rendered per palette, so the demo matches the page.
-    document.querySelectorAll('[data-shot]').forEach((img) => {
-      img.src = `assets/app/${id}-${img.dataset.shot}.webp`;
+    // Document order puts each <source> before its <img>; setting img.src last makes the browser re-pick.
+    document.querySelectorAll('[data-shot]').forEach((el) => {
+      el[el.tagName === 'SOURCE' ? 'srcset' : 'src'] = `assets/app/${id}-${el.dataset.shot}.webp`;
     });
     try { localStorage.setItem('devpurge.palette', id); } catch {}
   };
@@ -294,7 +295,7 @@
   const demo = document.querySelector('.demo');
   const demoWindow = demo?.querySelector('.demo__window');
   const demoSteps = [...(demo?.querySelectorAll('.demo__step') || [])];
-  const demoShots = ['dashboard', 'review', 'done'].map((shot) => demo?.querySelector(`[data-shot="${shot}"]`));
+  const demoShots = ['dashboard', 'review', 'done'].map((shot) => demo?.querySelector(`img[data-shot="${shot}"]`));
   let demoManual = false, demoVisible = false;
   const setDemoStep = (index, focus = false) => {
     demoSteps.forEach((btn, i) => {

@@ -1039,3 +1039,38 @@ html[data-palette="ember"] .palette__toggle { border-color: rgba(246, 239, 224, 
 /* Dark palettes flip --ink light, so the strip turns light: accent numbers switch to the dark paper tone. */
 html[data-palette="blacklight"] .proof__list strong,
 html[data-palette="ember"] .proof__list strong { color: var(--paper); }
+
+/* Phones get close-up crops (see <picture> sources) shown one at a time, so text stays readable. */
+@media (max-width: 560px) {
+  .demo__screen { aspect-ratio: 520 / 574; }
+  .demo__shot, .demo__shot--done { inset: 0; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; object-position: center top; transform: none; }
+  .demo__shot--review { box-shadow: none; }
+  .demo__shot--done { object-position: center; }
+  .demo__window[data-step="2"] .demo__shot--review { transform: none; }
+  .demo__window[data-step="3"] .demo__shot--done { transform: none; }
+  .demo__window[data-step="2"] .demo__shot--scan { opacity: 0; }
+  .demo__window[data-step="2"] .demo__screen::after { opacity: 0; }
+}
+
+/* ------- field test: one measured run ------- */
+.field { position: relative; padding: 20px clamp(16px, 4vw, 60px) 90px; }
+.field__card { position: relative; max-width: 860px; margin: 0 auto; padding: 40px clamp(20px, 4vw, 52px) 34px; background: var(--card) var(--grain); border: 4px solid var(--ink); border-radius: 6px 14px 8px 12px; box-shadow: 10px 10px 0 var(--ink); transform: rotate(var(--r)); }
+.field__kicker { margin: 0 0 10px; font-size: clamp(13px, 1.1vw, 16px); letter-spacing: .04em; text-transform: uppercase; }
+.field__title { margin: 0 0 26px; font: 400 clamp(32px, 4.4vw, 64px)/1.02 var(--poster); }
+.field__title mark { padding: 0 .12em; background: var(--yellow); color: var(--on-yellow, #141414); }
+.field__bars { display: grid; gap: 10px; margin-bottom: 24px; }
+.field__bar { display: grid; grid-template-columns: 70px 1fr auto; align-items: center; gap: 12px; font-size: clamp(14px, 1.2vw, 17px); }
+.field__bar i { position: relative; height: 18px; border: 2px solid var(--ink); border-radius: 9px; background: var(--paper); overflow: hidden; }
+.field__bar i::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--pink); }
+.field__bar--after i::after { background: var(--blue); }
+.field__list { margin: 0; }
+.field__list div { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 2px dashed color-mix(in srgb, var(--ink) 35%, transparent); font-size: clamp(14px, 1.25vw, 18px); }
+.field__list dd { margin: 0; font-weight: 700; white-space: nowrap; }
+.field__kept dd { color: var(--blue); }
+.field__fine { margin: 16px 0 0; font-size: clamp(13px, 1.05vw, 15px); }
+.field__fine code { font: inherit; font-weight: 700; }
+@media (max-width: 560px) {
+  .field__card { box-shadow: 6px 6px 0 var(--ink); }
+  .field__bar { grid-template-columns: 1fr auto; }
+  .field__bar i { grid-column: 1 / -1; grid-row: 2; }
+}

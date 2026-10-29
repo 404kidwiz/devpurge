@@ -34,7 +34,7 @@ public struct ResultsView: View {
                 }
                 Spacer()
                 Stamp(text: okCount == results.count ? "Done" : "Partly done",
-                      color: okCount == results.count ? Theme.primary : Theme.danger,
+                      color: Theme.current.stampOnNoteA(success: okCount == results.count),
                       angle: -10, size: 32)
                     .padding(.trailing, 16)
             }

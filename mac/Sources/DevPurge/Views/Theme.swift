@@ -25,6 +25,12 @@ public struct Palette: Sendable {
     public let warnBg: Color
     public let tapeA: Color
     public let tapeB: Color
+
+    /// Ink for a stamp printed on noteA (the cleanup results banner).
+    /// Dark palettes reuse the primary hue for noteA, so the stamp takes the note's own ink there.
+    public func stampOnNoteA(success: Bool) -> Color {
+        isDark ? onNoteA : (success ? accent : danger)
+    }
 }
 
 public enum PaletteID: String, CaseIterable, Identifiable, Sendable {

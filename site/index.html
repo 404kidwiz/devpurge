@@ -111,8 +111,8 @@
       <svg class="arrow arrow--hero" viewBox="0 0 220 140" aria-hidden="true"><path class="draw" d="M10 130C40 70 110 40 205 30" fill="none" stroke="var(--blue)" stroke-width="6" stroke-linecap="round"/><path class="draw" d="M175 12l32 18-26 26" fill="none" stroke="var(--blue)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div class="sticker torn-bg" data-reveal style="--d:600ms;--r:-8deg">
         <span class="dashes dashes--pink dashes--l" aria-hidden="true"><i></i><i></i><i></i></span>
-        <strong><span data-count="34.6">34.6</span> GB<br>freed*</strong>
-        <small>*sample scan</small>
+        <strong><span class="sr-only">34.6 GB freed, sample scan</span><span aria-hidden="true"><span data-count="34.6">34.6</span> GB<br>freed*</span></strong>
+        <small aria-hidden="true">*sample scan</small>
         <span class="dashes dashes--pink" aria-hidden="true"><i></i><i></i><i></i></span>
       </div>
       <img class="laptop" fetchpriority="high" decoding="async" src="assets/hero-laptop.webp" alt="Folders tipping off a laptop into a trash can" width="900" height="810" data-speed="-0.05">
@@ -143,16 +143,36 @@
       <button type="button" class="demo__step" role="tab" id="demo-tab-3" aria-controls="demo-panel" aria-selected="false" tabindex="-1" data-step="3"><em>3</em> Done<small>Moved to Trash. Put Back still works.</small><i class="demo__bar" aria-hidden="true"></i></button>
     </div>
     <figure class="demo__window" id="demo-panel" role="tabpanel" tabindex="0" aria-labelledby="demo-tab-1" data-step="1" data-reveal style="--r:.6deg">
-      <span class="tape tape--yellow" style="--r:-5deg;top:-16px;left:8%;width:150px"></span>
+      <span class="tape tape--yellow" style="--r:-5deg;top:-16px;right:8%;width:150px"></span>
       <span class="demo__chrome" aria-hidden="true"><i></i><i></i><i></i></span>
       <div class="demo__screen">
-        <img class="demo__shot demo__shot--scan" data-shot="dashboard" src="assets/app/zine-dashboard.webp" width="1020" height="740" loading="lazy" decoding="async" alt="DevPurge dashboard after a scan: 138 GB free, 34.6 GB eligible, Xcode DerivedData and npm cache ticked and marked safe.">
+        <picture><source media="(max-width: 560px)" data-shot="dashboard-m" srcset="assets/app/zine-dashboard-m.webp" width="590" height="650"><img class="demo__shot demo__shot--scan" data-shot="dashboard" src="assets/app/zine-dashboard.webp" width="1020" height="740" loading="lazy" decoding="async" alt="DevPurge dashboard after a scan: 138 GB free, 34.6 GB eligible, Xcode DerivedData and npm cache ticked and marked safe."></picture>
         <img class="demo__shot demo__shot--review" data-shot="review" aria-hidden="true" src="assets/app/zine-review.webp" width="520" height="574" loading="lazy" decoding="async" alt="Review sheet listing three selected paths, a 31.5 GB total and a Move files to Trash checkbox.">
-        <img class="demo__shot demo__shot--done" data-shot="done" aria-hidden="true" src="assets/app/zine-done.webp" width="1020" height="453" loading="lazy" decoding="async" alt="Results: 31.5 GB in the Trash, each path marked moved to Trash, Gradle kept because it was in use.">
+        <picture><source media="(max-width: 560px)" data-shot="done-m" srcset="assets/app/zine-done-m.webp" width="520" height="453"><img class="demo__shot demo__shot--done" data-shot="done" aria-hidden="true" src="assets/app/zine-done.webp" width="1020" height="453" loading="lazy" decoding="async" alt="Results: 31.5 GB in the Trash, each path marked moved to Trash, Gradle kept because it was in use."></picture>
       </div>
       <figcaption>Real DevPurge screens, sample data.</figcaption>
     </figure>
   </div>
+</section>
+
+<!-- 1d · FIELD TEST: measured run, numbers from launch-test-2026-10-21/marketing -->
+<section class="field" aria-labelledby="field-title">
+  <article class="field__card" data-reveal style="--r:-.8deg">
+    <span class="tape tape--pink" style="--r:3deg;top:-16px;right:10%;width:150px"></span>
+    <p class="field__kicker">Real test run · Oct 21, 2026 · DevPurge 3.3.0</p>
+    <h2 id="field-title" class="field__title">A 94%-full MacBook Pro got <mark>9.7 GB</mark> back.</h2>
+    <div class="field__bars" role="img" aria-label="Free space before: 58.8 GB. After: 68.5 GB, on a 1 TB disk.">
+      <div class="field__bar"><span>Before</span><i style="--w:86%"></i><b>58.8 GB free</b></div>
+      <div class="field__bar field__bar--after"><span>After</span><i style="--w:100%"></i><b>68.5 GB free</b></div>
+    </div>
+    <dl class="field__list">
+      <div><dt>npm cache</dt><dd>7.89 GB</dd></div>
+      <div><dt>pnpm store, 1,035 unused packages</dt><dd>2.87 GB</dd></div>
+      <div><dt>Chrome web cache</dt><dd>0.78 GB</dd></div>
+      <div class="field__kept"><dt>Docker VM disk (65.9 GB), AI history and settings (~12 GB)</dt><dd>kept</dd></div>
+    </dl>
+    <p class="field__fine">Measured with <code>df</code> before and after. 12.2 GB of files were removed, but pnpm hard-links packages, so 9.7 GB is the space actually gained.</p>
+  </article>
 </section>
 
 <!-- 2 · HOW IT WORKS -->
