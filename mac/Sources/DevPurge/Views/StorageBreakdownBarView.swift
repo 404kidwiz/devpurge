@@ -28,11 +28,13 @@ public struct StorageBreakdownBarView: View {
             }
         }
 
+        // Category colours come from the active palette's note colours.
         let palette: [String: (title: String, color: Color)] = [
-            "browsers": ("Browsers", Color(red: 0x4a/255.0, green: 0x85/255.0, blue: 0x68/255.0)),
-            "installers": ("Installers", Color(red: 0xb5/255.0, green: 0x8a/255.0, blue: 0x42/255.0)),
-            "oldstores": ("Package Stores", Color(red: 0x3d/255.0, green: 0x6e/255.0, blue: 0x8f/255.0)),
-            "review": ("Tooling & Review", Color(red: 0x85/255.0, green: 0x60/255.0, blue: 0x94/255.0))
+            "browsers": ("Browsers", Theme.notes[2].bg),
+            "installers": ("Installers", Theme.notes[0].bg),
+            "oldstores": ("Package Stores", Theme.notes[1].bg),
+            "projects": ("Project Caches", Theme.primary),
+            "review": ("Tooling & Review", Theme.accent)
         ]
 
         var list = [CategoryBreakdown]()
@@ -67,13 +69,13 @@ public struct StorageBreakdownBarView: View {
                             let barWidth = max(4.0, geo.size.width * fraction - 2)
                             Rectangle()
                                 .fill(cat.color)
-                                .frame(width: barWidth, height: 10)
+                                .frame(width: barWidth, height: 14)
                                 .help("\(cat.title): \(ByteFormat.string(cat.bytes))")
                         }
                     }
                     .clipShape(Capsule())
                 }
-                .frame(height: 10)
+                .frame(height: 14)
 
                 // Legend
                 HStack(spacing: 16) {
@@ -84,7 +86,7 @@ public struct StorageBreakdownBarView: View {
                                 .frame(width: 7, height: 7)
 
                             Text(cat.title)
-                                .font(Theme.bodyFont(size: 12))
+                                .font(Theme.bodyFont(size: 13))
                                 .foregroundColor(Theme.dynamicInk)
 
                             Text(ByteFormat.string(cat.bytes))
@@ -95,14 +97,9 @@ public struct StorageBreakdownBarView: View {
                 }
                 .padding(.top, 2)
             }
-            .padding(.vertical, 14)
-            .padding(.horizontal, 18)
-            .background(Theme.dynamicSurface)
-            .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Theme.dynamicLine, lineWidth: 1)
-            )
+            .padding(.vertical, 16)
+            .padding(.horizontal, 20)
+            .paper(Theme.surface, seed: 40, depth: 2, shadow: false)
         }
     }
 }

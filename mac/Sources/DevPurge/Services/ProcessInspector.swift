@@ -4,62 +4,147 @@ import AppKit
 public final class ProcessInspector: @unchecked Sendable {
     public private(set) var processes: String = ""
     public private(set) var openPaths: Set<String> = []
+    public private(set) var openPathHolders: [String: String] = [:]
     public private(set) var mountedImages: Set<String> = []
     public private(set) var activityError: String = ""
 
+    private static let spawnLock = NSLock()
+
     public init() {}
 
-    private func runCommand(_ args: [String], timeout: TimeInterval = 15) -> (stdout: String, exitCode: Int32) {
+    /// Runs an external tool without risking a pipe-buffer deadlock when output exceeds 64 KB
+    /// or pipe FD inheritance across concurrent process launches.
+    public static func runCommand(_ args: [String], currentDirectoryURL: URL? = nil, timeout: TimeInterval = 15) -> (stdout: String, exitCode: Int32) {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
         process.arguments = args
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = Pipe()
+        if let cwd = currentDirectoryURL {
+            process.currentDirectoryURL = cwd
+        }
 
+        // Augment PATH for GUI .app bundles launched by LaunchServices so homebrew/nvm/volta tools resolve.
+        var env = ProcessInfo.processInfo.environment
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        let extraPaths = [
+            "/opt/homebrew/bin",
+            "/usr/local/bin",
+            "\(home)/.local/bin",
+            "\(home)/Library/pnpm",
+            "\(home)/.volta/bin",
+            "\(home)/.nvm/current/bin",
+            "/usr/bin",
+            "/bin",
+            "/usr/sbin",
+            "/sbin"
+        ]
+        let existingPath = env["PATH"] ?? "/usr/bin:/bin:/usr/sbin:/sbin"
+        env["PATH"] = (extraPaths + [existingPath]).joined(separator: ":")
+        process.environment = env
+
+        spawnLock.lock()
+        let outPipe = Pipe()
+        let readHandle = outPipe.fileHandleForReading
+        let writeHandle = outPipe.fileHandleForWriting
+        _ = fcntl(readHandle.fileDescriptor, F_SETFD, FD_CLOEXEC)
+        process.standardOutput = outPipe
+        process.standardError = FileHandle.nullDevice
+
+        let launched: Bool
         do {
             try process.run()
-            let group = DispatchGroup()
-            group.enter()
-            DispatchQueue.global().async {
-                process.waitUntilExit()
-                group.leave()
-            }
-            if group.wait(timeout: .now() + timeout) == .timedOut {
-                process.terminate()
-                return ("", -1)
-            }
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            let output = String(data: data, encoding: .utf8) ?? ""
-            return (output, process.terminationStatus)
+            launched = true
         } catch {
+            launched = false
+        }
+        try? writeHandle.close()
+        spawnLock.unlock()
+
+        guard launched else {
+            try? readHandle.close()
             return ("", -1)
         }
+
+        final class DataBox: @unchecked Sendable { var data = Data() }
+        let box = DataBox()
+        let readGroup = DispatchGroup()
+        readGroup.enter()
+        DispatchQueue.global(qos: .userInitiated).async {
+            box.data = (try? readHandle.readToEnd()) ?? Data()
+            readGroup.leave()
+        }
+
+        let exitGroup = DispatchGroup()
+        exitGroup.enter()
+        DispatchQueue.global(qos: .userInitiated).async {
+            process.waitUntilExit()
+            exitGroup.leave()
+        }
+
+        if exitGroup.wait(timeout: .now() + timeout) == .timedOut {
+            process.terminate()
+            try? readHandle.close()
+            _ = exitGroup.wait(timeout: .now() + 1)
+            return ("", -1)
+        }
+
+        _ = readGroup.wait(timeout: .now() + timeout)
+        try? readHandle.close()
+        let output = String(data: box.data, encoding: .utf8) ?? ""
+        return (output, process.terminationStatus)
     }
+
+    /// Passive macOS system daemons that memory-map bundle localization tables (.strings / .loctable)
+    /// without actually running or mutating the cached bundle.
+    private static let passiveSystemCommands: Set<String> = [
+        "Notificat",
+        "NotificationCenter",
+        "usernoted",
+        "lsd",
+        "iconservicesagent"
+    ]
 
     public func refresh() {
         activityError = ""
         openPaths = []
+        openPathHolders = [:]
         mountedImages = []
 
-        let psResult = runCommand(["ps", "-axo", "args="])
+        let psResult = Self.runCommand(["ps", "-axo", "args="])
         if psResult.exitCode != 0 {
             activityError = "process inventory unavailable"
             return
         }
         processes = psResult.stdout
 
-        let lsofResult = runCommand(["lsof", "-nP", "-F", "n"], timeout: 30)
-        if lsofResult.exitCode == 0 {
+        // Exclude passive working-directory fds (-d ^cwd) and capture command + path (-F cn)
+        // so we can ignore passive NotificationCenter localization reads and identify active holders.
+        let lsofResult = Self.runCommand(["lsof", "-w", "-nP", "-d", "^cwd", "-F", "cn"], timeout: 20)
+        if !lsofResult.stdout.isEmpty {
             let lines = lsofResult.stdout.split(separator: "\n")
             var paths = Set<String>()
-            for line in lines where line.hasPrefix("n") {
-                paths.insert(String(line.dropFirst()))
+            var holders: [String: String] = [:]
+            var currentCommand = ""
+            for line in lines {
+                if line.hasPrefix("c") {
+                    currentCommand = String(line.dropFirst())
+                } else if line.hasPrefix("n") {
+                    let filePath = String(line.dropFirst())
+                    guard filePath.hasPrefix("/") else { continue }
+                    if Self.passiveSystemCommands.contains(currentCommand) &&
+                        (filePath.hasSuffix(".strings") || filePath.hasSuffix(".loctable") || filePath.hasSuffix(".icns")) {
+                        continue
+                    }
+                    paths.insert(filePath)
+                    if !currentCommand.isEmpty && holders[filePath] == nil {
+                        holders[filePath] = currentCommand
+                    }
+                }
             }
             openPaths = paths
+            openPathHolders = holders
         }
 
-        let hdiResult = runCommand(["hdiutil", "info", "-plist"])
+        let hdiResult = Self.runCommand(["hdiutil", "info", "-plist"])
         if hdiResult.exitCode == 0, let data = hdiResult.stdout.data(using: .utf8) {
             if let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
                let images = plist["images"] as? [[String: Any]] {
@@ -80,10 +165,13 @@ public final class ProcessInspector: @unchecked Sendable {
         }
 
         let prefix = path.hasSuffix("/") ? path : path + "/"
-        let isOpenOrMounted = openPaths.contains(where: { $0 == path || $0.hasPrefix(prefix) }) ||
-                              mountedImages.contains(where: { $0 == path || $0.hasPrefix(prefix) })
-
-        if isOpenOrMounted {
+        if let matchedOpenPath = openPaths.first(where: { $0 == path || $0.hasPrefix(prefix) }) {
+            if let holder = openPathHolders[matchedOpenPath], !holder.isEmpty {
+                return (.inUse, "Open files or a mounted disk image (\(holder))")
+            }
+            return (.inUse, "Open files or a mounted disk image")
+        }
+        if mountedImages.contains(where: { $0 == path || $0.hasPrefix(prefix) }) {
             return (.inUse, "Open files or a mounted disk image")
         }
 

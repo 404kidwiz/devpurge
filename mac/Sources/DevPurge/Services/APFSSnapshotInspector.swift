@@ -28,24 +28,10 @@ public enum APFSSnapshotInspector {
     }
 
     public static func checkLocalSnapshots() -> APFSSnapshotReport {
-        let proc = Process()
-        proc.executableURL = URL(fileURLWithPath: "/usr/bin/tmutil")
-        proc.arguments = ["listlocalsnapshots", "/"]
-        let pipe = Pipe()
-        proc.standardOutput = pipe
-        proc.standardError = Pipe()
-
-        do {
-            try proc.run()
-            proc.waitUntilExit()
-            if proc.terminationStatus == 0 {
-                let data = pipe.fileHandleForReading.readDataToEndOfFile()
-                let output = String(data: data, encoding: .utf8) ?? ""
-                return parseSnapshotOutput(output)
-            }
-            return APFSSnapshotReport(snapshotCount: 0, snapshotNames: [])
-        } catch {
-            return APFSSnapshotReport(snapshotCount: 0, snapshotNames: [])
+        let res = ProcessInspector.runCommand(["/usr/bin/tmutil", "listlocalsnapshots", "/"], timeout: 10)
+        if res.exitCode == 0 {
+            return parseSnapshotOutput(res.stdout)
         }
+        return APFSSnapshotReport(snapshotCount: 0, snapshotNames: [])
     }
 }

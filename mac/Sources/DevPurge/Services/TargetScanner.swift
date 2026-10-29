@@ -190,20 +190,11 @@ public final class TargetScanner: @unchecked Sendable {
         let fm = FileManager.default
 
         var activeStorePath: String?
-        let pnpmProc = Process()
-        pnpmProc.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        pnpmProc.arguments = ["pnpm", "store", "path"]
-        pnpmProc.currentDirectoryURL = homeDirectory
-        let pipe = Pipe()
-        pnpmProc.standardOutput = pipe
-        pnpmProc.standardError = Pipe()
-        if (try? pnpmProc.run()) != nil {
-            pnpmProc.waitUntilExit()
-            if pnpmProc.terminationStatus == 0 {
-                let out = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                if out.hasPrefix("/") {
-                    activeStorePath = URL(fileURLWithPath: out).resolvingSymlinksInPath().path
-                }
+        let pnpmRes = ProcessInspector.runCommand(["pnpm", "store", "path"], currentDirectoryURL: homeDirectory, timeout: 10)
+        if pnpmRes.exitCode == 0 {
+            let out = pnpmRes.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
+            if out.hasPrefix("/") {
+                activeStorePath = URL(fileURLWithPath: out).resolvingSymlinksInPath().path
             }
         }
 
@@ -216,21 +207,12 @@ public final class TargetScanner: @unchecked Sendable {
             for verDir in contents {
                 let pnpmCjs = verDir.appendingPathComponent("node_modules/pnpm/bin/pnpm.cjs")
                 if fm.fileExists(atPath: pnpmCjs.path) {
-                    let proc = Process()
-                    proc.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-                    proc.arguments = ["node", pnpmCjs.path, "store", "path"]
-                    proc.currentDirectoryURL = homeDirectory
-                    let p = Pipe()
-                    proc.standardOutput = p
-                    proc.standardError = Pipe()
-                    if (try? proc.run()) != nil {
-                        proc.waitUntilExit()
-                        if proc.terminationStatus == 0 {
-                            let out = String(data: p.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                            if out.hasPrefix("/") {
-                                let resolved = URL(fileURLWithPath: out).resolvingSymlinksInPath().path
-                                managers[resolved] = ["node", pnpmCjs.path, "store", "prune"]
-                            }
+                    let res = ProcessInspector.runCommand(["node", pnpmCjs.path, "store", "path"], currentDirectoryURL: homeDirectory, timeout: 10)
+                    if res.exitCode == 0 {
+                        let out = res.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if out.hasPrefix("/") {
+                            let resolved = URL(fileURLWithPath: out).resolvingSymlinksInPath().path
+                            managers[resolved] = ["node", pnpmCjs.path, "store", "prune"]
                         }
                     }
                 }
@@ -278,6 +260,7 @@ public final class TargetScanner: @unchecked Sendable {
             (".cache/uv", "Use --uv for native pruning; installed runtimes may share these files"),
             (".npm/_cacache", "Use --node"),
             ("Library/Developer/Xcode/DerivedData", "Close Xcode/builds, then use --mac"),
+            ("Library/Developer/CoreSimulator/Devices", "Use simctl delete unavailable to prune obsolete simulator runtimes"),
             ("Library/Caches/ms-playwright", "Retain registered browser versions"),
             (".cache/huggingface", "Model files require individual review"),
             (".cache/codex-runtimes", "Installed runtimes require individual review"),
@@ -304,38 +287,135 @@ public final class TargetScanner: @unchecked Sendable {
         return targets
     }
 
-    public static func measure(path: String) -> (sizeBytes: Int64?, sizeError: String) {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/du")
-        process.arguments = ["-sk", path]
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = Pipe()
+    /// Walks user-configured project scan roots to discover stale `node_modules`, `.venv`, and Rust `target/` folders.
+    public func collectProjectTargets(config: DevPurgeConfig) -> [Target] {
+        guard !config.projectScanRoots.isEmpty else { return [] }
+        let fm = FileManager.default
+        let idleDays = max(1, config.staleProjectDays)
+        let staleSeconds = TimeInterval(idleDays * 86400)
+        var targets = [Target]()
+        var seenPaths = Set<String>()
 
-        do {
-            try process.run()
-            let group = DispatchGroup()
-            group.enter()
-            DispatchQueue.global().async {
-                process.waitUntilExit()
-                group.leave()
+        func walkDirectory(_ dirURL: URL, depth: Int) {
+            if depth > 4 { return }
+            guard let children = try? fm.contentsOfDirectory(
+                at: dirURL,
+                includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey, .contentModificationDateKey],
+                options: [.skipsPackageDescendants]
+            ) else { return }
+
+            for child in children {
+                guard let vals = try? child.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey, .contentModificationDateKey]),
+                      vals.isDirectory == true,
+                      vals.isSymbolicLink != true else { continue }
+
+                let name = child.lastPathComponent
+                if name == ".git" || name == ".build" || name == "Library" || name == ".Trash" {
+                    continue
+                }
+
+                let isNodeModules = (name == "node_modules" && fm.fileExists(atPath: dirURL.appendingPathComponent("package.json").path))
+                let isPythonVenv = ((name == ".venv" || name == "venv") && (
+                    fm.fileExists(atPath: child.appendingPathComponent("pyvenv.cfg").path) ||
+                    fm.fileExists(atPath: dirURL.appendingPathComponent("pyproject.toml").path) ||
+                    fm.fileExists(atPath: dirURL.appendingPathComponent("requirements.txt").path)
+                ))
+                let isCargoTarget = (name == "target" && fm.fileExists(atPath: dirURL.appendingPathComponent("Cargo.toml").path))
+
+                if isNodeModules || isPythonVenv || isCargoTarget {
+                    let stdPath = child.standardizedFileURL.path
+                    guard !seenPaths.contains(stdPath),
+                          ProtectedPaths.reason(for: child, home: homeDirectory) == nil else {
+                        continue
+                    }
+                    seenPaths.insert(stdPath)
+
+                    var target = Target(path: stdPath, category: "projects")
+                    if let activity = processInspector.active(path: stdPath, bundle: nil) {
+                        target.status = activity.status
+                        target.reason = activity.reason
+                    } else {
+                        let parentVals = try? dirURL.resourceValues(forKeys: [.contentModificationDateKey])
+                        let mtime = max(vals.contentModificationDate ?? .distantPast, parentVals?.contentModificationDate ?? .distantPast)
+                        let ageSeconds = Date().timeIntervalSince(mtime)
+                        if ageSeconds >= staleSeconds {
+                            let daysOld = Int(ageSeconds / 86400)
+                            target.status = .eligible
+                            target.reason = "Stale project cache (\(daysOld)d idle); can be reinstalled"
+                        } else {
+                            target.status = .review
+                            target.reason = "Recently active project (<=\(idleDays)d); kept by default"
+                        }
+                    }
+                    targets.append(target)
+                    continue
+                }
+
+                // Do not descend inside other heavy artifact folders
+                if name == "node_modules" || name == ".venv" || name == "venv" || name == "target" || name.hasPrefix(".") {
+                    continue
+                }
+                walkDirectory(child, depth: depth + 1)
             }
-            if group.wait(timeout: .now() + 30) == .timedOut {
-                process.terminate()
-                return (nil, "Size scan timed out")
-            }
-            if process.terminationStatus != 0 {
-                return (nil, "Size unavailable: unreadable files")
-            }
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            if let output = String(data: data, encoding: .utf8)?.split(separator: "\t").first,
-               let kb = Int64(output.trimmingCharacters(in: .whitespaces)) {
-                return (kb * 1024, "")
-            }
-            return (nil, "Size format unrecognized")
-        } catch {
-            return (nil, "Size check failed: \(error.localizedDescription)")
         }
+
+        for rootPath in config.projectScanRoots {
+            let rootURL = URL(fileURLWithPath: rootPath).standardizedFileURL
+            var isDir: ObjCBool = false
+            guard fm.fileExists(atPath: rootURL.path, isDirectory: &isDir), isDir.boolValue else { continue }
+            walkDirectory(rootURL, depth: 0)
+        }
+
+        return targets
+    }
+
+    public static func measure(path: String) -> (sizeBytes: Int64?, sizeError: String) {
+        let fm = FileManager.default
+        var isDir: ObjCBool = false
+        guard fm.fileExists(atPath: path, isDirectory: &isDir) else {
+            return (nil, "Size unavailable: unreadable files")
+        }
+
+        let url = URL(fileURLWithPath: path)
+        let keys: Set<URLResourceKey> = [
+            .isRegularFileKey,
+            .isDirectoryKey,
+            .isSymbolicLinkKey,
+            .totalFileAllocatedSizeKey,
+            .fileAllocatedSizeKey,
+            .totalFileSizeKey,
+            .fileSizeKey
+        ]
+
+        if !isDir.boolValue {
+            if let vals = try? url.resourceValues(forKeys: keys) {
+                let sz = vals.totalFileAllocatedSize ?? vals.fileAllocatedSize ?? vals.totalFileSize ?? vals.fileSize ?? 0
+                return (Int64(sz), "")
+            }
+            if let attrs = try? fm.attributesOfItem(atPath: path),
+               let sz = attrs[.size] as? NSNumber {
+                return (sz.int64Value, "")
+            }
+            return (nil, "Size unavailable: unreadable files")
+        }
+
+        var total: Int64 = 0
+        guard let enumerator = fm.enumerator(
+            at: url,
+            includingPropertiesForKeys: Array(keys),
+            options: [],
+            errorHandler: { _, _ in true }
+        ) else {
+            return (nil, "Size unavailable: unreadable files")
+        }
+
+        for case let fileURL as URL in enumerator {
+            guard let vals = try? fileURL.resourceValues(forKeys: keys) else { continue }
+            if vals.isSymbolicLink == true || vals.isDirectory == true { continue }
+            let sz = vals.totalFileAllocatedSize ?? vals.fileAllocatedSize ?? vals.totalFileSize ?? vals.fileSize ?? 0
+            total += Int64(sz)
+        }
+        return (total, "")
     }
 
     public func scanStream(config: DevPurgeConfig) -> AsyncStream<Target> {
@@ -348,6 +428,7 @@ public final class TargetScanner: @unchecked Sendable {
                 candidates.append(contentsOf: self.collectBrowserTargets())
                 candidates.append(contentsOf: self.collectInstallerTargets())
                 candidates.append(contentsOf: self.collectOldStoreTargets())
+                candidates.append(contentsOf: self.collectProjectTargets(config: config))
                 candidates.append(contentsOf: self.collectReviewTargets())
 
                 for i in 0..<candidates.count {

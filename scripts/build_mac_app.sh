@@ -32,6 +32,10 @@ if [ ! -f "$ROOT_DIR/AppIcon.icns" ]; then
 fi
 cp "$ROOT_DIR/AppIcon.icns" "$RESOURCES_DIR/AppIcon.icns"
 
+# Bundled OFL fonts (Lilita One, Courier Prime) and their licences
+mkdir -p "$RESOURCES_DIR/Fonts"
+cp "$ROOT_DIR/mac/Resources/Fonts/"* "$RESOURCES_DIR/Fonts/"
+
 # Write Info.plist
 cat << 'EOF' > "$CONTENTS/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>

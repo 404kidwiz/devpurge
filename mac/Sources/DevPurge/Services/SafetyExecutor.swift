@@ -31,6 +31,7 @@ public final class SafetyExecutor: @unchecked Sendable {
         case "browsers": liveTargets = scanner.collectBrowserTargets()
         case "installers": liveTargets = scanner.collectInstallerTargets()
         case "oldstores": liveTargets = scanner.collectOldStoreTargets()
+        case "projects": liveTargets = scanner.collectProjectTargets(config: config)
         default: liveTargets = scanner.collectReviewTargets()
         }
 
@@ -45,20 +46,13 @@ public final class SafetyExecutor: @unchecked Sendable {
             if rescue {
                 return ("SKIPPED: native pruning cannot be rescued to Trash", false)
             }
-            let proc = Process()
-            proc.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-            proc.arguments = current.command
-            proc.currentDirectoryURL = scanner.homeDirectory
-            do {
-                try proc.run()
-                proc.waitUntilExit()
-                if proc.terminationStatus == 0 {
-                    return ("PRUNED", true)
-                } else {
-                    return ("FAILED: native command exited with code \(proc.terminationStatus)", false)
-                }
-            } catch {
-                return ("FAILED: \(error.localizedDescription)", false)
+            let res = ProcessInspector.runCommand(current.command, currentDirectoryURL: scanner.homeDirectory, timeout: 60)
+            if res.exitCode == 0 {
+                return ("PRUNED", true)
+            } else if res.exitCode == -1 {
+                return ("FAILED: native command timed out or could not launch", false)
+            } else {
+                return ("FAILED: native command exited with code \(res.exitCode)", false)
             }
         }
 

@@ -101,7 +101,7 @@ These groups are excluded from `--all` and scheduled sweeps.
 | `--installers` | Identified Sparkle staging directories and individual Electron updater ZIPs at least one day old, with versions no newer than the installed app |
 | `--oldstores` | Older pnpm stores, using an already-installed matching pnpm version for native pruning; unmatched stores retained |
 | `--all` | Only `uv`, `node`, `lang`, `mac`, and `system` |
-| `--ai` | **Explicit only:** truncates Claude history to 1,000 lines and deletes Ollama temporary files |
+| `--ai` | **Explicit only:** reports Codex, Claude Code and Cursor cache, log and crash-report sizes. Deletes only regenerable caches after `--yes` or typing `clean ai`, plus Ollama temporary files. Sessions, projects, settings, auth and history are never deleted. |
 | `--docker` | **Explicit only:** `docker system prune -af --volumes`; can delete container data. Asks you to type `prune docker` (or pass `--yes`) |
 | `--git` | **Explicit only:** Git GC with default retention in repositories discovered under Desktop, Documents, Projects, Developer |
 | `--agents` | **Pro, explicit only:** agent leftovers. Reports stale worktrees, duplicate clones and OpenCode caches from parallel Claude Code, Codex, OpenCode, Kilo and Clawdbot runs. See below |
@@ -109,8 +109,8 @@ These groups are excluded from `--all` and scheduled sweeps.
 Close relevant builds/apps before clearing their caches. Future builds and installs
 may need downloads. `--node` prunes only the active pnpm store; `--oldstores` handles supported older stores.
 uv pruning respects its cache lock and can wait when other uv processes are active;
-do not force it while those processes use the cache. AI history truncation also
-requires closing Claude sessions first.
+do not force it while those processes use the cache. AI cleanup never deletes
+sessions, projects, settings, auth or history.
 
 A failed step stops its module; the other selected modules still run, the failed
 modules are listed, and the command exits nonzero. Missing tools and rescue-mode
@@ -251,8 +251,9 @@ The native SwiftUI app (`mac/`) adds a menu-bar companion, streaming scans,
 Quick Look, Trash with Finder "Put Back", and a storage breakdown.
 
 - **Free:** unlimited scans and reports, plus 3 cleanups.
-- **$19 one-time** (launch week $12): unlimited cleanup on up to 2 Macs.
+- **$19 one-time:** unlimited cleanup on up to 2 Macs.
   Sold through Lemon Squeezy, which is the merchant of record, with a 14-day refund window.
+- **Requires macOS 14 or later.**
 - Licensing contacts Lemon Squeezy only to activate, validate (at most daily) or
   deactivate. It works offline for 14 days, and network errors never revoke a license.
 

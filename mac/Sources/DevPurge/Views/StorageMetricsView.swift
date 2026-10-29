@@ -1,128 +1,76 @@
 import SwiftUI
 
+/// Three taped sticky notes: free space, stored size, eligible locations.
 public struct StorageMetricsView: View {
     @ObservedObject var viewModel: DevPurgeViewModel
+    /// Stack the notes vertically when the window is narrow.
+    var stacked = false
+
+    private var eligibleBytes: Int64 {
+        viewModel.targets.filter { $0.status == .eligible }.compactMap(\.sizeBytes).reduce(0, +)
+    }
 
     public var body: some View {
-        GeometryReader { geo in
-            if geo.size.width >= 620 {
-                horizontalLayout
-            } else {
-                compactStackedLayout
-            }
-        }
-        .frame(minHeight: 140)
-        .padding(.vertical, 16)
-        .padding(.horizontal, 20)
-        .background(Theme.dynamicSurface)
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Theme.dynamicLine, lineWidth: 1)
-        )
-    }
-
-    // Wide horizontal layout with dividers
-    private var horizontalLayout: some View {
-        HStack(alignment: .top, spacing: 0) {
-            diskMetricCard
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.trailing, 20)
-
-            Divider().background(Theme.dynamicLine)
-
-            scannedMetricCard
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-
-            Divider().background(Theme.dynamicLine)
-
-            eligibleMetricCard
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 20)
+        if stacked {
+            VStack(alignment: .leading, spacing: 16) { notes }
+        } else {
+            HStack(alignment: .top, spacing: 12) { notes }
         }
     }
 
-    // Narrow responsive layout
-    private var compactStackedLayout: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            diskMetricCard
-
-            Divider().background(Theme.dynamicLine)
-
-            HStack(spacing: 16) {
-                scannedMetricCard
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                Divider().background(Theme.dynamicLine)
-
-                eligibleMetricCard
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-        }
+    @ViewBuilder
+    private var notes: some View {
+        note(index: 0, angle: -1.2, tape: Theme.current.tapeB,
+             label: "Available on disk",
+             value: viewModel.diskSpace.formattedFree,
+             caption: "of \(viewModel.diskSpace.formattedTotal)",
+             meter: 1 - viewModel.diskSpace.usedFraction)
+        note(index: 1, angle: 0.8, tape: Theme.current.tapeA,
+             label: "Stored in scanned locations",
+             value: viewModel.targets.isEmpty ? "—" : ByteFormat.string(viewModel.totalScannedStoredBytes),
+             caption: "Includes items we’ll keep",
+             meter: nil)
+        note(index: 2, angle: -0.6, tape: Theme.current.tapeA,
+             label: "Eligible locations",
+             value: viewModel.targets.isEmpty ? "—" : ByteFormat.string(eligibleBytes),
+             caption: viewModel.targets.isEmpty ? "Rechecked before cleanup" : "\(viewModel.eligibleCount) locations · rechecked",
+             meter: nil)
     }
 
-    // Individual metric card views
-    private var diskMetricCard: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Available on disk")
-                .font(Theme.bodyFont(size: 13))
-                .foregroundColor(Theme.dynamicMuted)
-
-            Text(viewModel.diskSpace.formattedFree)
-                .font(Theme.headingFont(size: 32))
-                .foregroundColor(Theme.dynamicInk)
-
-            // Dynamic meter bar
-            GeometryReader { meterGeo in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Theme.dynamicLine)
-                        .frame(height: 4)
-
-                    Capsule()
-                        .fill(Theme.dynamicAccent)
-                        .frame(width: max(0, meterGeo.size.width * CGFloat(viewModel.diskSpace.freeFraction)), height: 4)
+    private func note(index: Int, angle: Double, tape: Color, label: String, value: String, caption: String, meter: Double?) -> some View {
+        let colors = Theme.notes[index]
+        return VStack(alignment: .leading, spacing: 5) {
+            Text(label)
+                .font(Theme.bodyFont(size: 12))
+                .fontWeight(.bold)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(value)
+                .font(Theme.headingFont(size: 30))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            if let meter {
+                GeometryReader { g in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(colors.fg.opacity(0.2))
+                        Capsule().fill(colors.fg).frame(width: max(0, g.size.width * meter))
+                    }
                 }
+                .frame(height: 5)
             }
-            .frame(height: 6)
-            .padding(.vertical, 2)
-
-            Text("Total volume: \(viewModel.diskSpace.formattedTotal)")
+            Text(caption)
                 .font(Theme.bodyFont(size: 11))
-                .foregroundColor(Theme.dynamicMuted)
+                .fixedSize(horizontal: false, vertical: true)
+                .opacity(0.85)
         }
-    }
-
-    private var scannedMetricCard: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Stored in scanned locations")
-                .font(Theme.bodyFont(size: 13))
-                .foregroundColor(Theme.dynamicMuted)
-
-            Text(viewModel.targets.isEmpty ? "—" : ByteFormat.string(viewModel.totalScannedStoredBytes))
-                .font(Theme.headingFont(size: 32))
-                .foregroundColor(Theme.dynamicInk)
-
-            Text("Includes items we’ll keep")
-                .font(Theme.bodyFont(size: 11))
-                .foregroundColor(Theme.dynamicMuted)
-        }
-    }
-
-    private var eligibleMetricCard: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Eligible locations")
-                .font(Theme.bodyFont(size: 13))
-                .foregroundColor(Theme.dynamicMuted)
-
-            Text(viewModel.targets.isEmpty ? "—" : "\(viewModel.eligibleCount)")
-                .font(Theme.headingFont(size: 32))
-                .foregroundColor(Theme.dynamicInk)
-
-            Text("Rechecked before cleanup")
-                .font(Theme.bodyFont(size: 11))
-                .foregroundColor(Theme.dynamicMuted)
-        }
+        .foregroundColor(colors.fg)
+        .padding(.horizontal, 14)
+        .padding(.top, 18)
+        .padding(.bottom, 12)
+        .frame(maxWidth: .infinity, minHeight: 130, alignment: .topLeading)
+        .paper(colors.bg, seed: 50 + index, depth: 2.5)
+        .overlay(Tape(color: tape, width: 52, angle: angle * 3).offset(y: -8), alignment: .top)
+        .rotationEffect(.degrees(angle))
+        .accessibilityElement(children: .combine)
     }
 }

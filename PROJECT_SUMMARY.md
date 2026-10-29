@@ -1,13 +1,14 @@
 # DevPurge project summary
 
-Updated: 2026-09-21
+Updated: 2026-10-19
 
 ## Current behavior
 
 Bash CLI v3.3.0 with eleven modules. Startup resolves installed symlinks and reads
 module descriptions correctly. `--all` is cache-only (uv, Node, languages, macOS,
-system); AI history, Docker and Git require explicit selection. Xcode Archives
-are excluded. Interactive mode starts with dry-run enabled. Invalid options and
+system); AI tool bloat, Docker and Git require explicit selection. `--ai` reports
+Codex, Claude Code and Cursor cache sizes and deletes only regenerable caches.
+Xcode Archives are excluded. Interactive mode starts with dry-run enabled. Invalid options and
 JSON configuration fail before cleanup. Cleanup errors propagate; rescue mode
 skips commands and uses collision-safe Trash directories for path targets.
 
@@ -266,3 +267,65 @@ third-party runtime dependencies:
    Add background storage monitoring that notifies the user if caches exceed 20 GB.
 2. **Deep Module Expansion**:
    Add support for Gradle (`~/.gradle/caches`), Android SDK caches, and HuggingFace models.
+
+## 2026-10-21 — Launch fixes from first real-Mac test run (merged in #8, `6a24feb`)
+A real cleanup on a 94%-full MacBook Pro freed 9.7 GB but exposed two bugs:
+1. **Any running updater blocked every target.** Tailscale's Sparkle `Autoupdate`
+   matched a global substring check, so `--scan` marked npm, pnpm, HuggingFace and
+   Docker paths "in-use". Now only bundle-owned targets check for an updater, and
+   only one whose command line names that bundle id or `.app` path
+   (`src/report.py` `updater_running`, `ProcessInspector.updaterRunning`).
+2. **One failed module aborted the whole sweep.** A uv cache-lock timeout stopped
+   `--all` before node/lang/mac/system ran. Each module now runs in its own errexit
+   subshell (`bin/devpurge` `run_if_allowed`): a failed step still stops that module,
+   the rest run, and the CLI exits 1 with `[!] Failed: <modules>`.
+Regression tests: `test_only_the_owning_apps_updater_blocks_cleanup`,
+`test_failed_module_does_not_abort_remaining_modules`,
+`test_refused_module_reports_failure_after_later_modules_run`,
+`testOnlyOwningAppsUpdaterBlocksCleanup` (Swift). Python 55/55, Swift 22/22.
+
+## 2026-10-21 — Units, 3.3.1 and site claims (merged in #9 and #10)
+- **Decimal GB everywhere (#9, `f4ed7a8`).** The web GUI printed GiB and the Mac app GB
+  for the same disk. `src/units.py`, `src/web/units.js` and `ByteFormat.swift` now share
+  16 cases in `tests/units_cases.json`; a guard test rejects GiB/MiB/`du -sh`.
+- **3.3.1, build 2 (#10, `2547d66`).** Version set in `bin/devpurge`, the app plist,
+  `package_dmg.sh` and `release_mac.sh`; `tests/test_version.py` keeps them equal.
+- **On-disk sizes for `--ai`/`--agents` (#10).** `ai_bloat.size_of` sums allocated blocks,
+  counts hard links once and never follows symlinks (sparse VM disks reported up to 15x
+  their real use). Matches `du -sk` on real Codex, Claude and Cursor folders.
+- Tests on `main`: Python 105, Swift 24. Release build on the signing Mac reads 3.3.1 (2).
+- **Release blockers (owner):** Developer ID Application certificate, `devpurge-notary`
+  keychain profile, Lemon Squeezy IDs in `LicenseConfig.swift` (still 0), then
+  `scripts/release_mac.sh`.
+- **Landing site** (`devpurge-site`, now a local Git repo): failure-behavior and denylist
+  copy updated for #8; Mac app vs CLI row says AI/Agents are "not in the Mac app yet";
+  `github-cli` stays a launch placeholder while this repo is private.
+- **Next:** UI refresh (4 tool tabs: Clean, AI tools, Agents, Analyze; grouped inventory)
+  and Analyze v3.4 (disk treemap). Plans, mockups and the full session summary are in the
+  git-ignored `launch-test-2026-10-21/` folder.
+
+## Premium landing concept round
+
+Three additional standalone five-section motion prototypes live in `design-directions/premium/`, with comparison gallery `index.html`, reference captures under `screens/`, brief and skill applications in `BRIEF.md`, and browser results in `verification.json`. These are illustrative marketing prototypes, not connected to cleanup or checkout. Earlier concepts remain under `design-directions/`.
+
+### DevPurge studio art-direction pass
+
+`design-directions/studio/index.html` presents three additional asset-led five-section concepts. Custom built-in generated imagery, self-contained HTML pages, desktop/mobile captures, interactive previews and reduced-motion verification included. Prior concepts preserved.
+
+### Three further cinematic explorations
+
+`design-directions/explorations/index.html`: After Hours, Field Atlas, and Launch Window. Each has five key sections, custom generated imagery, interactive sample review, desktop/mobile screenshots, pause and reduced-motion support. Prior rounds remain intact.
+
+### Arcade design directions
+
+`design-directions/arcade/index.html` presents Puzzle Grid (replacing racing), Mission Control, and Arcade Studio. Each has five sections, original generated art, interactive sample review and responsive captures. Prior rounds preserved.
+
+### Zine landing page (site/)
+
+Chosen direction: Zine (risograph collage), from the GPT-image mockups in `design-directions/gpt-image/` (Index, Fathom, Zine). `site/index.html` is a standalone static page with no build step: hero, how it works, interactive sample review, safety tags, receipt pricing. Fonts are self-hosted OFL (Rubik, Lilita One, Courier Prime, Anton, Caveat). Illustrations were generated with Codex `image_gen` and saved as WebP (originals in `design-directions/gpt-image/zine-assets-src/`). Motion includes scroll reveals, parallax, a hide-on-scroll nav, a receipt that prints in, a sticker count-up, and hover states throughout. Reduced motion is respected. The review board toggles and recalculates the total; "Move to Trash" is demo-only and says so. Verified in Chromium at 390/820/1280/1586/1920 by two QA-agent passes; screenshots are in `design-directions/zine-build-qa/`. Not yet tested in Safari, Firefox or on real devices. Not deployed. The purchase link points to the README section until a Lemon Squeezy URL is confirmed.
+
+Round 2 of `site/` (Zine): added hero CTA, FAQ, refund/footer links, favicon and OG image, crumple/grunge/tape/collage textures (Codex image generation), no-JS fallback, hover-only-on-hover-devices, low-core mode, 0 GB state, phone nav. Verified: smoke test 68/69 across Chromium, WebKit and Firefox (the miss is Safari's default Tab behaviour); independent QA agent pass, with its P1/P2 defects then fixed and re-smoked. Open: GitHub repo is private so all page links 404 publicly; no checkout URL; `og:image` needs an absolute URL once the domain is known; no real app screenshot or social proof; not tested on real devices or with a screen reader.
+
+### Mac app: Zine restyle with 4 palettes
+
+The SwiftUI app (`mac/`) now matches the Zine site: sticky-note metrics, paper inventory rows with SAFE / IN USE stamps, a receipt-style review sheet, a "Space back." result card and a matching menu-bar popover. Fonts are Lilita One and Courier Prime (OFL, `mac/Resources/Fonts`, copied into the app bundle by `scripts/build_mac_app.sh`). Four palettes, picked from the Palette menu, Settings (Cmd-,) or the popover swatches, saved per Mac: Zine and Citrus (light), Blacklight and Ember (dark). `Theme.swift` holds semantic tokens; views never use raw colours. `PaletteSnapshotTests` checks WCAG contrast for every palette and, with `DEVPURGE_SNAPSHOT_DIR` set, writes screenshots of each screen per palette. The cleanup result now reports Trash moves ("in the Trash, empty to free") separately from measured freed space. Screenshots are in `design-directions/zine-app-build/`. Not yet checked by hand in the running app.

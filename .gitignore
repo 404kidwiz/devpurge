@@ -8,14 +8,18 @@
 mac/.build/
 .build/
 
-# Application and package build outputs
+# Application, design exploration, and package build outputs
 DevPurge.app/
 *.dmg
 dist_staging/
+design-directions/
 
 # Local logs, agent/editor config and Python caches (may contain personal paths)
 logs/
 opencode.json
+.agent-tools/
+.serena/
+.pytest_cache/
 __pycache__/
 *.pyc
 dist/

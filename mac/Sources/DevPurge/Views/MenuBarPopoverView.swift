@@ -2,7 +2,6 @@ import SwiftUI
 
 public struct MenuBarPopoverView: View {
     @ObservedObject var viewModel: DevPurgeViewModel
-    @Environment(\.openWindow) private var openWindow
 
     public init(viewModel: DevPurgeViewModel) {
         self.viewModel = viewModel
@@ -10,97 +9,124 @@ public struct MenuBarPopoverView: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            // Header
             HStack {
-                Text("d/")
-                    .font(Theme.monoFont(size: 16))
+                Text("DevPurge / Storage desk")
+                    .font(Theme.bodyFont(size: 12))
                     .fontWeight(.bold)
-                    .foregroundColor(Theme.dynamicAccent)
-
-                Text("DevPurge")
-                    .font(Theme.headingFont(size: 14))
-                    .fontWeight(.bold)
-                    .foregroundColor(Theme.dynamicInk)
-
+                    .foregroundColor(Theme.ink)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .paper(Theme.current.tapeB.opacity(0.55), seed: 5, depth: 2, shadow: false)
+                    .rotationEffect(.degrees(-2))
                 Spacer()
-
-                Text(viewModel.diskSpace.formattedFree + " free")
-                    .font(Theme.monoFont(size: 11))
-                    .foregroundColor(Theme.dynamicMuted)
+                Text(viewModel.licenseManager.badgeText)
+                    .font(Theme.bodyFont(size: 11))
+                    .foregroundColor(Theme.muted)
             }
 
-            // Disk Progress Bar
-            VStack(alignment: .leading, spacing: 4) {
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(Theme.dynamicLine)
-                            .frame(height: 4)
+            if viewModel.isLowDiskSpace {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(Theme.danger)
+                        .font(.system(size: 11))
+                    Text("Low disk space (< \(viewModel.config.lowDiskAlertThresholdGB) GB free)")
+                        .font(Theme.bodyFont(size: 11))
+                        .foregroundColor(Theme.ink)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .paper(Theme.warnBg, seed: 8, depth: 2, shadow: false)
+            }
 
-                        Capsule()
-                            .fill(Theme.dynamicAccent)
-                            .frame(width: max(0, geo.size.width * CGFloat(viewModel.diskSpace.freeFraction)), height: 4)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(viewModel.diskSpace.formattedFree)
+                    .font(Theme.headingFont(size: 40))
+                    .monospacedDigit()
+                    .foregroundColor(viewModel.isLowDiskSpace ? Theme.danger : Theme.primary)
+                Text("available")
+                    .font(Theme.headingFont(size: 34))
+                    .foregroundColor(Theme.current.isDark ? Theme.notes[2].bg : Theme.accent)
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                GeometryReader { g in
+                    let free = CGFloat(1 - viewModel.diskSpace.usedFraction)
+                    HStack(spacing: 0) {
+                        Rectangle().fill(Theme.notes[1].bg).frame(width: g.size.width * (1 - free) * 0.5)
+                        Rectangle().fill(Theme.notes[0].bg).frame(width: g.size.width * (1 - free) * 0.5)
+                        Rectangle().fill(Theme.notes[2].bg)
                     }
+                    .clipShape(Capsule())
                 }
-                .frame(height: 4)
-
-                HStack {
-                    Text("\(viewModel.targets.count) scanned locations")
-                        .font(Theme.bodyFont(size: 11))
-                        .foregroundColor(Theme.dynamicMuted)
-
-                    Spacer()
-
-                    Text("\(viewModel.eligibleCount) eligible")
-                        .font(Theme.bodyFont(size: 11))
-                        .foregroundColor(viewModel.eligibleCount > 0 ? Theme.dynamicAccent : Theme.dynamicMuted)
-                }
+                .frame(height: 12)
+                Text("STORAGE DISTRIBUTION · \(viewModel.diskSpace.formattedTotal) total")
+                    .font(Theme.bodyFont(size: 11))
+                    .foregroundColor(Theme.muted)
             }
 
-            Divider().background(Theme.dynamicLine)
+            HStack {
+                Text(viewModel.targets.isEmpty
+                     ? "Not scanned yet"
+                     : "\(viewModel.targets.count) scanned · \(viewModel.eligibleCount) eligible (\(ByteFormat.string(viewModel.totalEligibleBytes)))")
+                Spacer()
+            }
+            .font(Theme.bodyFont(size: 12))
+            .foregroundColor(Theme.ink)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .paper(Theme.surface, seed: 6, depth: 2, shadow: false)
 
-            // Actions
-            HStack(spacing: 8) {
-                Button(action: {
-                    viewModel.scan()
-                }) {
+            HStack(spacing: 10) {
+                Button(action: { viewModel.scanAndSelectSafe() }) {
                     HStack(spacing: 6) {
-                        if viewModel.isScanning {
-                            ProgressView()
-                                .controlSize(.small)
-                        }
-                        Text(viewModel.isScanning ? "Scanning..." : "Scan Now")
-                            .font(Theme.headingFont(size: 12))
+                        if viewModel.isScanning { ProgressView().controlSize(.small) }
+                        Text(viewModel.isScanning ? "Scanning…" : "Scan & Select Safe")
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
-                    .background(Theme.dynamicSoft)
-                    .foregroundColor(Theme.dynamicAccent)
-                    .cornerRadius(6)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(ZineButtonStyle(kind: .primary, size: 14))
                 .disabled(viewModel.isScanning)
 
-                Button(action: {
-                    NSApp.activate(ignoringOtherApps: true)
-                    for window in NSApp.windows where window.canBecomeMain {
-                        window.makeKeyAndOrderFront(nil)
-                        return
-                    }
-                }) {
-                    Text("Open Dashboard")
-                        .font(Theme.headingFont(size: 12))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
-                        .background(Theme.dynamicAccent)
-                        .foregroundColor(Theme.dynamicOnAccent)
-                        .cornerRadius(6)
+                Button(action: openDashboard) {
+                    Text("Open Desk").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(ZineButtonStyle(kind: .secondary, size: 14))
+            }
+
+            if !viewModel.selectedTargetIDs.isEmpty {
+                Button(action: {
+                    openDashboard()
+                    viewModel.prepareReview()
+                }) {
+                    Text("Review \(ByteFormat.string(viewModel.totalSelectedBytes)) selected →")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(ZineButtonStyle(kind: .secondary, size: 13))
+            }
+
+            Text("Nothing runs automatically from this dashboard.")
+                .font(Theme.bodyFont(size: 11))
+                .foregroundColor(Theme.muted)
+
+            HStack {
+                Text("Palette")
+                    .font(Theme.bodyFont(size: 11))
+                    .foregroundColor(Theme.muted)
+                Spacer()
+                PalettePicker(compact: true)
             }
         }
-        .padding(14)
-        .frame(width: 280)
-        .background(Theme.dynamicSurface)
+        .padding(18)
+        .frame(width: 350)
+        .background(Theme.background)
+    }
+
+    private func openDashboard() {
+        NSApp.activate(ignoringOtherApps: true)
+        for window in NSApp.windows where window.canBecomeMain {
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
     }
 }

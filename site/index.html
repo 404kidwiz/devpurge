@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en" data-palette="zine">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DevPurge — Clean out the junk drawer</title>
+<meta name="description" content="Reclaim gigabytes of developer caches on your Mac. Scan first, review every path, nothing leaves your Mac.">
+<script>document.documentElement.classList.add('js')</script>
+<meta name="theme-color" content="#FF4FA3">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:title" content="DevPurge — Clean out the junk drawer">
+<meta property="og:description" content="Reclaim gigabytes of developer caches on your Mac. Scan first, review every path, nothing leaves your Mac.">
+<meta property="og:image" content="assets/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="assets/og.jpg">
+<link rel="preload" href="fonts/LilitaOne.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Rubik.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- Shared SVG filters: rough ink edges and speckled print wear -->
+<svg class="defs" aria-hidden="true" focusable="false">
+  <filter id="ink" x="-5%" y="-5%" width="110%" height="110%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="4" result="n"/>
+    <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -22 16" result="holes"/>
+    <feComposite in="SourceGraphic" in2="holes" operator="in" result="worn"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="9" result="w"/>
+    <feDisplacementMap in="worn" in2="w" scale="2.5"/>
+  </filter>
+  <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="2"/><feDisplacementMap in="SourceGraphic" scale="3"/></filter>
+</svg>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav-wrap" data-nav>
+  <nav class="nav torn-bg" aria-label="Main">
+    <span class="tape tape--yellow" style="--r:-28deg;left:-34px;top:-12px"></span>
+    <a class="logo" href="#top">DevPurge</a>
+    <ul>
+      <li><a href="#how">how</a></li>
+      <li><a href="#review">try it</a></li>
+      <li><a href="#safe">safe</a></li>
+      <li><a href="#price">price</a></li>
+    </ul>
+    <div class="palette-swatches" role="group" aria-label="Choose app palette">
+      <button type="button" class="swatch" data-set-palette="zine" aria-pressed="true" title="Zine · Light (pink, cobalt, yellow)" aria-label="Zine palette">
+        <span class="swatch__ring" style="--a:#FFD21F;--b:#FF4FA3;--c:#2B3FE0;--bg:#F6EFE0"></span>
+      </button>
+      <button type="button" class="swatch" data-set-palette="citrus" aria-pressed="false" title="Citrus · Light (orange, violet, teal)" aria-label="Citrus palette">
+        <span class="swatch__ring" style="--a:#B8E35A;--b:#6A48E0;--c:#FF6A13;--bg:#EFF3E1"></span>
+      </button>
+      <button type="button" class="swatch" data-set-palette="blacklight" aria-pressed="false" title="Blacklight · Dark (lime, magenta, cyan)" aria-label="Blacklight palette">
+        <span class="swatch__ring" style="--a:#C6FF3D;--b:#FF5FD2;--c:#39D9FF;--bg:#0F1016"></span>
+      </button>
+      <button type="button" class="swatch" data-set-palette="ember" aria-pressed="false" title="Ember · Dark (amber, coral, sage)" aria-label="Ember palette">
+        <span class="swatch__ring" style="--a:#FFB238;--b:#FF7A66;--c:#86CFBA;--bg:#1D1310"></span>
+      </button>
+    </div>
+    <a class="btn btn--pink btn--sm" href="#price">Get for Mac</a>
+    <span class="dashes dashes--pink" aria-hidden="true"><i></i><i></i><i></i></span>
+  </nav>
+</header>
+
+<main id="main">
+
+<!-- 1 · HERO -->
+<section class="hero" id="top">
+  <div class="dots dots--yellow" data-speed="-0.12" style="--s:560px;top:-210px;right:12%"></div>
+  <div class="dots dots--blue" data-speed="0.08" style="--s:300px;top:120px;right:-110px"></div>
+  <div class="dots dots--yellow" data-speed="0.1" style="--s:420px;bottom:-180px;left:-120px"></div>
+  <div class="dots dots--pink" data-speed="0.06" style="--s:320px;bottom:-140px;left:58%"></div>
+  <div class="burst" data-speed="-0.06" aria-hidden="true"></div>
+  <span class="tape tape--pink" style="--r:14deg;top:120px;right:-40px;width:230px"></span>
+  <span class="tape tape--yellow" style="--r:-16deg;bottom:40px;right:4%;width:220px"></span>
+  <img class="scrap" src="assets/scrap-pink.webp" alt="" width="760" height="457" aria-hidden="true" loading="lazy">
+  <svg class="scribble" viewBox="0 0 260 150" aria-hidden="true"><path d="M10 130c20-70 70-90 60-40s-50 60-20 20 60-80 60-30-50 70-10 30 60-80 60-28-46 66-4 30 50-60 54-20" fill="none" stroke="var(--blue)" stroke-width="7" stroke-linecap="round"/></svg>
+
+  <div class="hero__inner">
+    <h1 class="headline" aria-label="Clean out the junk drawer.">
+      <span class="row" aria-hidden="true">
+        <span class="chip torn chip--pink" data-reveal style="--d:0ms;--r:-2deg"><b class="inked">Clean</b></span>
+        <span class="chip torn chip--yellow" data-reveal style="--d:90ms;--r:1.5deg"><b class="inked">out</b></span>
+      </span>
+      <span class="row" aria-hidden="true">
+        <span class="chip torn chip--paper" data-reveal style="--d:180ms;--r:-1deg"><b class="inked">the</b></span>
+        <span class="chip torn chip--paper chip--junk" data-reveal style="--d:270ms;--r:1deg"><b class="inked">junk</b>
+          <svg class="underline" viewBox="0 0 300 30" preserveAspectRatio="none"><path d="M4 18c80-10 190-14 292-8M10 26c90-8 170-10 270-6" fill="none" stroke="var(--blue)" stroke-width="5" stroke-linecap="round"/></svg>
+        </span>
+      </span>
+      <span class="row" aria-hidden="true">
+        <span class="chip torn chip--pink" data-reveal style="--d:360ms;--r:-1.5deg"><b class="inked">drawer.</b></span>
+      </span>
+    </h1>
+    <p class="tagline torn" data-reveal style="--d:480ms;--r:-.6deg"><span>Scan first. Review every path. Nothing leaves your Mac.</span></p>
+    <div class="cta-row" data-reveal style="--d:560ms;--r:0deg">
+      <a class="btn btn--pink btn--lg" href="#price" aria-label="Get DevPurge for Mac: see pricing">Get for Mac</a>
+      <a class="cta-link" href="#cli-card">or scan free with the CLI &rarr;</a>
+    </div>
+
+    <div class="hero__art">
+      <svg class="arrow arrow--hero" viewBox="0 0 220 140" aria-hidden="true"><path class="draw" d="M10 130C40 70 110 40 205 30" fill="none" stroke="var(--blue)" stroke-width="6" stroke-linecap="round"/><path class="draw" d="M175 12l32 18-26 26" fill="none" stroke="var(--blue)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="sticker torn-bg" data-reveal style="--d:600ms;--r:-8deg">
+        <span class="dashes dashes--pink dashes--l" aria-hidden="true"><i></i><i></i><i></i></span>
+        <strong><span data-count="34.6">34.6</span> GB<br>freed*</strong>
+        <small>*sample scan</small>
+        <span class="dashes dashes--pink" aria-hidden="true"><i></i><i></i><i></i></span>
+      </div>
+      <img class="laptop" fetchpriority="high" decoding="async" src="assets/hero-laptop.webp" alt="Folders tipping off a laptop into a trash can" width="900" height="810" data-speed="-0.05">
+    </div>
+  </div>
+</section>
+
+<!-- 2 · HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="how__title">
+    <span class="dashes dashes--ink dashes--l" aria-hidden="true"><i></i><i></i><i></i></span>
+    <h2 class="torn torn--pink" data-reveal style="--r:-1deg"><span class="inked">How it works</span></h2>
+    <span class="dashes dashes--ink" aria-hidden="true"><i></i><i></i><i></i></span>
+  </div>
+  <ol class="panels">
+    <li class="panel" data-reveal style="--d:0ms;--r:-1.2deg">
+      <span class="tape tape--pink" style="--r:-6deg;top:-18px;left:4%;width:160px"></span>
+      <h3><em>1.</em> Scan</h3>
+      <p class="bubble">Just looking!</p>
+      <img loading="lazy" src="assets/folder.webp" alt="" width="640" height="551">
+    </li>
+    <li class="arrow-cell" aria-hidden="true"><svg viewBox="0 0 80 40"><path d="M4 22c20-4 40-4 66-2M54 6l18 14-18 14" fill="none" stroke="var(--ink)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></li>
+    <li class="panel" data-reveal style="--d:120ms;--r:.8deg">
+      <span class="tape tape--blue" style="--r:3deg;top:-16px;left:14%;width:130px"></span>
+      <h3><em>2.</em> Pick</h3>
+      <p class="bubble">These ones.</p>
+      <img loading="lazy" src="assets/checklist.webp" alt="" width="590" height="640">
+    </li>
+    <li class="arrow-cell" aria-hidden="true"><svg viewBox="0 0 80 40"><path d="M4 22c20-4 40-4 66-2M54 6l18 14-18 14" fill="none" stroke="var(--ink)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></li>
+    <li class="panel" data-reveal style="--d:240ms;--r:-.6deg">
+      <span class="tape tape--yellow" style="--r:4deg;top:-20px;right:4%;width:170px"></span>
+      <h3><em>3.</em> Poof</h3>
+      <p class="bubble">Space back.</p>
+      <img loading="lazy" src="assets/poof.webp" alt="" width="640" height="603">
+    </li>
+  </ol>
+</section>
+
+<!-- 3 · REVIEW -->
+<section class="review" id="review" aria-labelledby="review-title">
+  <h2 id="review-title" class="sr-only">Review sample scan</h2>
+  <div class="dots dots--ink" data-speed="0.05" style="--s:360px;top:40px;left:-60px"></div>
+  <div class="dots dots--pink" data-speed="-0.05" style="--s:420px;top:300px;left:4%"></div>
+  <div class="dots dots--blue" data-speed="0.07" style="--s:300px;top:180px;right:-60px"></div>
+  <div class="dots dots--yellow" data-speed="-0.04" style="--s:360px;top:420px;right:6%"></div>
+  <img class="inkc inkc--l" src="assets/ink-collage.webp" alt="" aria-hidden="true" width="520" height="475" loading="lazy">
+  <img class="inkc inkc--r" src="assets/ink-collage.webp" alt="" aria-hidden="true" width="520" height="475" loading="lazy">
+  <span class="scrawl scrawl--ink" aria-hidden="true" style="left:3%;top:520px"></span>
+  <span class="scrawl scrawl--ink" aria-hidden="true" style="right:2%;top:440px;transform:scaleX(-1)"></span>
+
+  <div class="try-bar" data-reveal style="--r:-1.2deg">
+    <p class="try" id="try-note">Try it. Tap a note. Sample data, nothing moves.</p>
+    <div class="try-actions">
+      <button type="button" class="chip-btn" data-select-all>Select all safe</button>
+      <button type="button" class="chip-btn" data-clear-all>Clear</button>
+    </div>
+  </div>
+  <div class="board" data-board role="group" aria-label="Sample scan results" aria-describedby="try-note">
+    <button class="note note--yellow" aria-pressed="true" data-size="18.4" data-reveal style="--d:0ms;--r:-1.5deg">
+      <span class="tape tape--pink" style="--r:2deg;top:-14px;left:28%;width:140px"></span>
+      <span class="note__name">Xcode<br>DerivedData</span><span class="note__size">18.4 GB</span><span class="box" aria-hidden="true"></span>
+    </button>
+    <button class="note note--pink" aria-pressed="true" data-size="7.2" data-reveal style="--d:80ms;--r:1deg">
+      <span class="tape tape--yellow" style="--r:-3deg;top:-16px;left:32%;width:110px"></span>
+      <span class="note__name">npm<br>cache</span><span class="note__size">7.2 GB</span><span class="box" aria-hidden="true"></span>
+    </button>
+    <button class="note note--blue" aria-pressed="true" data-size="5.9" data-reveal style="--d:160ms;--r:2deg">
+      <span class="tape tape--dots" style="--r:-2deg;top:-14px;left:52%;width:130px"></span>
+      <span class="note__name">Cargo<br>registry</span><span class="note__size">5.9 GB</span><span class="box" aria-hidden="true"></span>
+    </button>
+    <button class="note note--yellow note--b" aria-pressed="false" data-size="3.1" data-reveal style="--d:240ms;--r:-1deg">
+      <span class="tape tape--grid" style="--r:1deg;top:-14px;left:40%;width:140px"></span>
+      <span class="note__name">Homebrew</span><span class="note__size">3.1 GB</span><span class="box" aria-hidden="true"></span>
+    </button>
+    <div class="note note--paper note--b note--locked" role="group" data-reveal style="--d:320ms;--r:.5deg" aria-label="Gradle, 2.0 GB, skipped because it is in use">
+      <span class="tape tape--pink" style="--r:-1deg;top:-14px;left:42%;width:110px"></span>
+      <span class="note__name">Gradle</span><span class="note__size">2.0 GB</span>
+      <span class="stamp stamp--red">Nope - in use</span>
+    </div>
+  </div>
+
+  <div class="picked torn" data-reveal style="--r:-.4deg">
+    <p class="picked__total"><strong data-total>31.5 GB</strong> <span>picked</span>
+      <svg class="underline" viewBox="0 0 300 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 12c90-6 190-8 292-2" fill="none" stroke="var(--pink)" stroke-width="5" stroke-linecap="round"/></svg>
+    </p>
+    <small class="sample">sample data</small>
+    <button class="btn btn--pink btn--lg" data-trash aria-disabled="false">Move to Trash</button>
+  </div>
+  <p class="toast" role="status" aria-live="polite" data-toast></p>
+</section>
+
+<!-- 4 · SAFETY -->
+<section class="safe" id="safe">
+  <div class="dots dots--ink" style="--s:420px;top:180px;left:6%;opacity:.35"></div>
+  <div class="dots dots--ink" style="--s:420px;top:240px;right:8%;opacity:.35"></div>
+  <span class="dashes dashes--pink dashes--l safe__d1" aria-hidden="true"><i></i><i></i></span>
+  <span class="dashes dashes--pink safe__d2" aria-hidden="true"><i></i><i></i></span>
+  <h2 class="safe__title" data-reveal>Some stuff is <span class="ul">off limits.</span></h2>
+  <ul class="tags">
+    <li class="tag tag--paper" data-reveal style="--d:0ms;--r:-9deg">
+      <span class="string" aria-hidden="true"></span><span class="hole hole--pink"></span>
+      <img loading="lazy" src="assets/icon-folder.webp" alt="" width="360" height="269">
+      <span class="tag__label">Home folders</span>
+      <span class="stamp stamp--blue">Hands off</span>
+      <span class="tape tape--pink" style="--r:30deg;bottom:30px;left:-30px;width:120px"></span>
+    </li>
+    <li class="tag tag--yellow" data-reveal style="--d:90ms;--r:-3deg">
+      <span class="string string--dark" aria-hidden="true"></span><span class="hole hole--blue"></span>
+      <img loading="lazy" src="assets/icon-branch.webp" alt="" width="360" height="348">
+      <span class="tag__label">Git directories</span>
+      <span class="stamp stamp--ink">Hands off</span>
+    </li>
+    <li class="tag tag--pink" data-reveal style="--d:180ms;--r:4deg">
+      <span class="string" aria-hidden="true"></span><span class="hole hole--yellow"></span>
+      <img loading="lazy" src="assets/icon-lock.webp" alt="" width="360" height="303">
+      <span class="tag__label">Keychains</span>
+      <span class="stamp stamp--ink">Hands off</span>
+    </li>
+    <li class="tag tag--paper" data-reveal style="--d:270ms;--r:8deg">
+      <span class="string string--dark" aria-hidden="true"></span><span class="hole hole--blue"></span>
+      <img loading="lazy" src="assets/icon-hammer.webp" alt="" width="360" height="358">
+      <span class="tag__label">Xcode Archives</span>
+      <span class="stamp stamp--pink">Hands off</span>
+      <span class="tape tape--yellow" style="--r:-40deg;bottom:20px;right:-34px;width:120px"></span>
+    </li>
+  </ul>
+  <p class="safe__foot torn" data-reveal><span>No network. No telemetry.</span></p>
+</section>
+
+<!-- 4b · FAQ -->
+<section class="faq" id="faq" aria-labelledby="faq-title">
+  <h2 id="faq-title" class="faq__title" data-reveal style="--r:-1deg"><span class="inked">Quick answers</span></h2>
+  <div class="faq__grid">
+    <details class="qa qa--yellow" data-reveal style="--d:0ms;--r:-1deg"><summary>Does it delete things I need?</summary><p>Only the paths you tick. Scanning is read-only, and anything running or open is skipped. Home folders, <code>.git</code> directories, Keychains and Xcode Archives are never touched.</p></details>
+    <details class="qa qa--pink" data-reveal style="--d:80ms;--r:1deg"><summary>Does it phone home?</summary><p>No telemetry. The app only contacts Lemon Squeezy to activate, validate (at most daily) or deactivate a license, and it works offline for 14 days.</p></details>
+    <details class="qa qa--paper" data-reveal style="--d:160ms;--r:-.6deg"><summary>What do I get for free?</summary><p>Unlimited scans and reports plus your first 3 cleanups. The CLI and local GUI are open source (MIT) and free.</p></details>
+    <details class="qa qa--blue" data-reveal style="--d:240ms;--r:1.2deg"><summary>Refunds and requirements?</summary><p>$19 one-time for up to 2 Macs, with a 14-day refund window through Lemon Squeezy. Needs macOS 14 or later.</p></details>
+  </div>
+</section>
+
+<!-- 5 · GET IT -->
+<section class="get" id="price">
+  <img class="coll coll--tl" src="assets/collage-tl.webp" alt="" aria-hidden="true" width="800" height="800" loading="lazy">
+  <img class="coll coll--br" src="assets/collage-br.webp" alt="" aria-hidden="true" width="800" height="800" loading="lazy">
+  <img class="slashes" src="assets/slashes.webp" alt="" aria-hidden="true" width="600" height="400" loading="lazy">
+  <div class="dots dots--yellow" style="--s:300px;bottom:180px;right:4%"></div>
+  <div class="dots dots--ink" style="--s:260px;top:340px;left:-100px"></div>
+  <span class="dashes dashes--ink get__d1" aria-hidden="true"><i></i><i></i><i></i></span>
+  <span class="dashes dashes--ink get__d2" aria-hidden="true"><i></i><i></i><i></i></span>
+
+  <div class="get__inner">
+    <div class="receipt-wrap" data-receipt>
+      <span class="tape tape--yellow" style="--r:-4deg;top:-18px;left:28%;width:150px;z-index:3"></span>
+      <div class="receipt-print" data-print><div class="receipt">
+        <h2>DEVPURGE FOR MAC</h2>
+        <hr>
+        <dl>
+          <div><dt>Scan storage</dt><dd>FREE</dd></div>
+          <div><dt>First 3 cleanups</dt><dd>FREE</dd></div>
+          <div><dt>Unlimited cleanups</dt><dd>$19.00</dd></div>
+          <div><dt>2 Macs</dt><dd>included</dd></div>
+        </dl>
+        <hr>
+        <p class="receipt__total"><span>TOTAL ONE-TIME</span><span>$19.00</span></p>
+        <p class="receipt__fine">14-day refund. Sold via Lemon Squeezy.</p>
+        <div class="barcode" data-barcode aria-hidden="true"></div>
+      </div></div>
+      <a class="btn-sticker torn-bg" href="https://github.com/404kidwiz/devpurge#devpurge-for-mac"><span class="inked">Get for Mac</span></a>
+    </div>
+    <div class="cli-col">
+      <div class="handnote">
+        <p>CLI + local GUI<br>are free (MIT)</p>
+        <svg viewBox="0 0 260 120" aria-hidden="true"><path class="draw" d="M240 10c0 60-80 100-220 80" fill="none" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/><path class="draw" d="M50 62L14 90l40 22" fill="none" stroke="var(--ink)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="cli-card" id="cli-card" data-cli-card>
+        <span class="tape tape--blue" style="--r:2deg;top:-15px;right:12%;width:130px"></span>
+        <div class="cli-card__head">
+          <span class="cli-card__badge">OPEN SOURCE CLI</span>
+          <span class="cli-card__stamp" data-cli-stamp aria-live="polite">COPIED!</span>
+        </div>
+        <div class="cli-modes" role="tablist" aria-label="CLI command presets">
+          <button type="button" class="cli-mode" role="tab" aria-selected="true" data-cli-cmd="python3 -m devpurge --dry-run" data-cli-note="Read-only scan across all 9 developer cache modules. Nothing is modified.">Scan only</button>
+          <button type="button" class="cli-mode" role="tab" aria-selected="false" data-cli-cmd="python3 -m devpurge --all" data-cli-note="Runs every module with interactive confirmation before any cleanup.">All modules</button>
+          <button type="button" class="cli-mode" role="tab" aria-selected="false" data-cli-cmd="python3 -m devpurge --node --uv" data-cli-note="Targets npm/pnpm/Yarn caches, stale node_modules, and uv Python environments.">Node + uv</button>
+          <button type="button" class="cli-mode" role="tab" aria-selected="false" data-cli-cmd="python3 -m devpurge --mac" data-cli-note="Clears Xcode DerivedData, Simulator caches, CocoaPods, and SwiftPM caches.">Xcode + Mac</button>
+          <button type="button" class="cli-mode" role="tab" aria-selected="false" data-cli-cmd="python3 -m devpurge --gui" data-cli-note="Starts the local localhost web dashboard on 127.0.0.1 with zero external calls.">Local GUI</button>
+        </div>
+        <div class="cli-box">
+          <code class="cli-box__code" data-cli-output>python3 -m devpurge --dry-run</code>
+          <button type="button" class="cli-box__copy" data-cli-copy aria-label="Copy CLI command">Copy</button>
+        </div>
+        <p class="cli-card__note" data-cli-desc>Read-only scan across all 9 developer cache modules. Nothing is modified.</p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <nav aria-label="Footer">
+    <a href="https://github.com/404kidwiz/devpurge">GitHub</a>
+    <a href="https://github.com/404kidwiz/devpurge/blob/main/LICENSE">MIT license (CLI)</a>
+    <a href="https://github.com/404kidwiz/devpurge#safety-guarantees">Safety guarantees</a>
+    <a href="https://github.com/404kidwiz/devpurge/issues">Support</a>
+  </nav>
+  <p>DevPurge. Sizes shown are a sample scan, not your Mac.</p>
+</footer>
+
+<script src="main.js" defer></script>
+</body>
+</html>
