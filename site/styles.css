@@ -1075,3 +1075,5 @@ html[data-palette="ember"] .proof__list strong { color: var(--paper); }
   .field__bar i { grid-column: 1 / -1; grid-row: 2; }
 }
 .faq__grid > .qa:last-child:nth-child(odd) { grid-column: 1 / -1; }
+/* License button is parked until the store goes live: dimmed but still readable. */
+.btn--ghost:disabled { opacity: .72; cursor: not-allowed; box-shadow: none; transform: none; }

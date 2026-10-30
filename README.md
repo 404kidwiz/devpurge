@@ -9,7 +9,7 @@ or Xcode Archives. No network, no telemetry.
 
 - **DevPurge CLI + local GUI:** free and open source (MIT).
 - **DevPurge for Mac:** native menu-bar app. Scanning is free and includes 3 free
-  cleanups; then **$19 one-time** for 2 Macs ([details](#devpurge-for-mac)).
+  cleanups; then **$19 one-time** for 2 Macs, on sale soon ([details](#devpurge-for-mac)).
 
 ```bash
 git clone https://github.com/404kidwiz/devpurge && cd devpurge
@@ -251,8 +251,8 @@ The native SwiftUI app (`mac/`) adds a menu-bar companion, streaming scans,
 Quick Look, Trash with Finder "Put Back", and a storage breakdown.
 
 - **Free:** unlimited scans and reports, plus 3 cleanups.
-- **$19 one-time:** unlimited cleanup on up to 2 Macs.
-  Sold through Lemon Squeezy, which is the merchant of record, with a 14-day refund window.
+- **$19 one-time (license sales open soon):** unlimited cleanup on up to 2 Macs.
+  Will be sold through Lemon Squeezy, the merchant of record, with a 14-day refund window.
 - **Requires macOS 14 or later.**
 - Licensing contacts Lemon Squeezy only to activate, validate (at most daily) or
   deactivate. It works offline for 14 days, and network errors never revoke a license.
