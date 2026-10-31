@@ -1114,7 +1114,6 @@ html[data-palette="ember"] .proof__list strong { color: var(--paper); }
   .cta-row > .btn { width: 100%; text-align: center; }
   .btn--ghost { font-size: 20px; white-space: normal; }
   .never { margin-left: 0; line-height: 1.6; }
-  .hero__art { margin-top: 28px; }
   /* The rotated receipt is narrower than the page; its second action must
      participate in layout rather than extend past the right-hand edge. */
   .receipt-wrap { margin: 0 8px; }
@@ -1135,4 +1134,44 @@ html[data-palette="ember"] .proof__list strong { color: var(--paper); }
 /* A sticky two-row header consumes too much of a phone's landscape viewport. */
 @media (max-width: 1024px) and (max-height: 500px) {
   .nav-wrap { position: relative; }
+}
+
+/* Mobile is a compact poster: headline and product share the opening row;
+   supporting copy and actions keep the full measure below that composition. */
+@media (max-width: 860px) {
+  .hero { padding-top: 148px; padding-bottom: 40px; }
+  .hero__inner {
+    width: 100%;
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto;
+    column-gap: 12px;
+    align-items: center;
+  }
+  .headline { grid-column: 1; grid-row: 1; position: relative; z-index: 2; font-size: clamp(32px, 10.5vw, 84px); }
+  .hero__art { grid-column: 2; grid-row: 1; height: clamp(190px, 54vw, 420px); min-height: 0; max-height: none; margin: 0; }
+  .hero__art .laptop { width: 106%; max-width: none; right: -2%; bottom: 0; }
+  .hero__art .sticker { top: 4px; right: 2%; width: 94%; padding: 12px 8px 10px; }
+  .hero__art .sticker strong { font-size: clamp(24px, 5.3vw, 42px); line-height: .94; }
+  .hero__art .sticker strong::after { height: 3px; margin-top: 5px; }
+  .hero__art .sticker small { font-size: clamp(10px, 1.7vw, 13px); margin-top: 4px; }
+  .hero__art .sticker .dashes { display: none; }
+  .hero .tagline { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; margin: 20px 0 0; padding: 14px 16px 16px; font-size: clamp(16px, 2.5vw, 20px); }
+  .hero .cta-row { grid-column: 1 / -1; grid-row: 3; margin: 24px 0 0; }
+  .hero .never { grid-column: 1 / -1; grid-row: 4; margin: 18px 0 0; }
+  /* The first-screen composition must not depend on a below-fold reveal. */
+  html.js .hero [data-reveal] { transform: rotate(var(--r, 0deg)); }
+  .hero .burst { top: 128px; left: -76px; width: 230px; height: 230px; opacity: .6; }
+  .hero > .dots--yellow:first-child { --s: 280px !important; top: 132px !important; right: -140px !important; opacity: .45; }
+  .hero > .dots--yellow:nth-child(3), .hero > .dots--pink { display: none; }
+  .hero > .scrap { width: 34vw; right: -6%; bottom: 8px; opacity: .65; }
+  .hero > .scribble { width: 120px; left: -44px; bottom: -22px; opacity: .55; }
+  .hero > .tape--pink { display: none; }
+  .hero > .tape--yellow { width: 100px !important; right: -24px !important; bottom: 14px !important; }
+  /* A paper offcut keeps the black mesh basket legible at phone scale. */
+  html:is([data-palette="blacklight"], [data-palette="ember"]) .hero__art::before {
+    content: ''; position: absolute; right: -6px; bottom: -4px;
+    width: 108%; height: 58%; background: #F6EFE0 var(--grain);
+    transform: rotate(2deg);
+    clip-path: polygon(2% 5%, 17% 0, 37% 4%, 55% 1%, 76% 5%, 98% 0, 100% 29%, 97% 53%, 100% 76%, 96% 100%, 75% 97%, 55% 100%, 34% 96%, 2% 100%, 0 77%, 3% 51%, 0 25%);
+  }
 }
