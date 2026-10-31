@@ -332,6 +332,7 @@ The SwiftUI app (`mac/`) now matches the Zine site: sticky-note metrics, paper i
 
 ## Landing page critique fixes (2026-10-29)
 
+- Official website link (2026-10-30): GitHub's About homepage now points to `https://devpurge.com/` instead of the old GitHub Pages URL; the README also links the official site immediately below the cover.
 - Repository cover (2026-10-30): published the 2:1 Zine-style brand cover, PNG master (1774×887), lightweight JPEG (839,980 bytes), and generation prompt under `docs/assets/devpurge-repository-cover-v1.*` in commit `56d6237`. The README displays the JPEG with descriptive alt text. GitHub's social preview is also configured with the same JPEG; GraphQL reports `usesCustomOpenGraphImage: true`. Independent QA passed remote file hashes, public README rendering, artwork legibility/crop, and the served social image (HTTP 200, byte-identical to the JPEG). Evidence: `docs/repository-graphics-qa.md`.
 - Nav: links no longer wrap ("try it"), centred on one line with logo/button; logo and nav button use Lilita One; pink dashes removed from the button.
 - Palette swatches moved into a single 44px toggle with a "Pick a palette" popover (Esc / outside click closes).
