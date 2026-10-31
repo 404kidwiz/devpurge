@@ -37,8 +37,11 @@ running app may retain its old Dock image until it is quit and reopened.
 
 ICNS extraction verified ten PNG representations with sizes 16, 32, 64, 128,
 256, 512 and 1024, with transparent corners. Deterministic regeneration and
-`git diff --check` passed. Source and local copies are updated; the public v3.3.1
-DMG is unchanged and needs a separate release to carry this icon to new downloads.
+`git diff --check` passed. Source and local copies are updated. The published
+[v3.3.2 installer](https://github.com/404kidwiz/devpurge-releases/releases/tag/v3.3.2)
+includes this icon. Its anonymous public download matches the locally verified
+installer and published SHA-256 checksum. It remains ad-hoc signed and is not
+Apple-notarized. See [release notes](releases/3.3.2.md).
 
 ![Zine icon](assets/mac-icon-zine.png)
 

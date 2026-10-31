@@ -2,6 +2,16 @@
 
 Updated: 2026-10-31
 
+## Installer release 3.3.2 (2026-10-31)
+
+- [Public installer and checksum](https://github.com/404kidwiz/devpurge-releases/releases/tag/v3.3.2): Apple Silicon, macOS 14+, build 3; 2,132,367 bytes.
+- SHA-256: `34acdd0cb96aaf4f9dde5fc1fccf64ecf2badc7f430029363e093d6b12dcea0d`.
+- Mounted DMG integrity, strict ad-hoc signature, embedded icon, version and Applications shortcut passed. No development-license bypass in the release binary.
+- Native suite: 30 passed, one optional snapshot-export test skipped, no failures. Native launch was not re-certified; Apple notarization remains pending.
+- All four website download paths now target v3.3.2, including the mobile copy-link fallback. Download/copy-link and keyboard regression checks pass, including real clipboard bytes. v3.3.1 remains available for rollback.
+
+Full release notes: `docs/releases/3.3.2.md`.
+
 ## Mac app icon refresh (2026-10-31)
 
 Replaced the limestone `d/` icon with a Zine paper-cut D using the app's licensed
@@ -16,12 +26,14 @@ re-signed after the resource change; strict signature verification passed.
 LaunchServices was refreshed, and macOS's resolved Desktop-app icon was inspected
 and matches the new artwork. Light/dark size checks and deterministic ICNS
 round-trip checks passed. Existing app copies were backed up before modification.
-The public DMG has not been replaced; this is a local icon/source update, not a
-new signed or notarized release. Details: `docs/mac-icon.md`.
+Published v3.3.2 (build 3) with this icon to the public download repository.
+The uploaded installer and anonymous public download match the verified local
+artifact and published checksum. This is an ad-hoc signed release; Apple
+notarization remains pending. Details: `docs/mac-icon.md`.
 
 ## Current behavior
 
-Bash CLI v3.3.0 with eleven modules. Startup resolves installed symlinks and reads
+Bash CLI v3.3.2 with eleven modules. Startup resolves installed symlinks and reads
 module descriptions correctly. `--all` is cache-only (uv, Node, languages, macOS,
 system); AI tool bloat, Docker and Git require explicit selection. `--ai` reports
 Codex, Claude Code and Cursor cache sizes and deletes only regenerable caches.
