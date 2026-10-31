@@ -1,0 +1,485 @@
+[
+  {
+    "viewport": [
+      320,
+      568
+    ],
+    "documentWidth": 320,
+    "overflow": [],
+    "clippedText": [
+      {
+        "client": 99,
+        "scroll": 105,
+        "text": "DevPurge"
+      }
+    ],
+    "controlsBelow44": []
+  },
+  {
+    "viewport": [
+      375,
+      812
+    ],
+    "documentWidth": 375,
+    "overflow": [],
+    "clippedText": [
+      {
+        "client": 116,
+        "scroll": 122,
+        "text": "DevPurge"
+      }
+    ],
+    "controlsBelow44": []
+  },
+  {
+    "viewport": [
+      390,
+      844
+    ],
+    "documentWidth": 390,
+    "overflow": [],
+    "clippedText": [
+      {
+        "client": 116,
+        "scroll": 122,
+        "text": "DevPurge"
+      }
+    ],
+    "controlsBelow44": []
+  },
+  {
+    "viewport": [
+      430,
+      932
+    ],
+    "documentWidth": 430,
+    "overflow": [],
+    "clippedText": [
+      {
+        "client": 116,
+        "scroll": 122,
+        "text": "DevPurge"
+      }
+    ],
+    "controlsBelow44": []
+  },
+  {
+    "viewport": [
+      768,
+      1024
+    ],
+    "documentWidth": 768,
+    "overflow": [],
+    "clippedText": [
+      {
+        "client": 116,
+        "scroll": 122,
+        "text": "DevPurge"
+      }
+    ],
+    "controlsBelow44": []
+  },
+  {
+    "viewport": [
+      844,
+      390
+    ],
+    "documentWidth": 844,
+    "overflow": [],
+    "clippedText": [
+      {
+        "client": 116,
+        "scroll": 122,
+        "text": "DevPurge"
+      }
+    ],
+    "controlsBelow44": []
+  },
+  {
+    "viewport": [
+      932,
+      430
+    ],
+    "documentWidth": 932,
+    "overflow": [],
+    "clippedText": [
+      {
+        "client": 116,
+        "scroll": 122,
+        "text": "DevPurge"
+      }
+    ],
+    "controlsBelow44": [
+      {
+        "h": 39,
+        "text": "how",
+        "w": 42.2,
+        "x": 199.6,
+        "y": 48.5
+      },
+      {
+        "h": 39,
+        "text": "try it",
+        "w": 76.4,
+        "x": 262.3,
+        "y": 48.5
+      },
+      {
+        "h": 39,
+        "text": "safe",
+        "w": 53.6,
+        "x": 359.2,
+        "y": 48.5
+      },
+      {
+        "h": 39,
+        "text": "price",
+        "w": 65,
+        "x": 433.3,
+        "y": 48.5
+      },
+      {
+        "h": 37.4,
+        "text": "Select all safe",
+        "w": 162.6,
+        "x": 560.3,
+        "y": 4510.1
+      },
+      {
+        "h": 35.6,
+        "text": "Clear",
+        "w": 78.7,
+        "x": 732.2,
+        "y": 4508.3
+      },
+      {
+        "h": 42.4,
+        "text": "Scan only",
+        "w": 113.8,
+        "x": 185.1,
+        "y": 9038.6
+      },
+      {
+        "h": 42.7,
+        "text": "All modules",
+        "w": 131.7,
+        "x": 304,
+        "y": 9042.1
+      },
+      {
+        "h": 42.4,
+        "text": "Node + uv",
+        "w": 113.8,
+        "x": 440.9,
+        "y": 9045
+      },
+      {
+        "h": 42.7,
+        "text": "Xcode + Mac",
+        "w": 131.7,
+        "x": 559.8,
+        "y": 9047.5
+      },
+      {
+        "h": 42.4,
+        "text": "Local GUI",
+        "w": 113.8,
+        "x": 184.1,
+        "y": 9085.6
+      },
+      {
+        "h": 41.5,
+        "text": "Copy",
+        "w": 72.8,
+        "x": 657.6,
+        "y": 9162.5
+      },
+      {
+        "h": 41,
+        "text": "GitHub",
+        "w": 58,
+        "x": 204.6,
+        "y": 9504
+      },
+      {
+        "h": 41,
+        "text": "MIT license (CLI)",
+        "w": 156.9,
+        "x": 290.6,
+        "y": 9504
+      },
+      {
+        "h": 41,
+        "text": "Safety guarantees",
+        "w": 156.9,
+        "x": 475.5,
+        "y": 9504
+      },
+      {
+        "h": 41,
+        "text": "Support",
+        "w": 67,
+        "x": 660.4,
+        "y": 9504
+      }
+    ]
+  },
+  {
+    "viewport": [
+      1024,
+      768
+    ],
+    "documentWidth": 1024,
+    "overflow": [],
+    "clippedText": [
+      {
+        "client": 116,
+        "scroll": 122,
+        "text": "DevPurge"
+      }
+    ],
+    "controlsBelow44": [
+      {
+        "h": 39,
+        "text": "how",
+        "w": 42.2,
+        "x": 207.9,
+        "y": 48.5
+      },
+      {
+        "h": 39,
+        "text": "try it",
+        "w": 76.4,
+        "x": 272.6,
+        "y": 48.5
+      },
+      {
+        "h": 39,
+        "text": "safe",
+        "w": 53.6,
+        "x": 371.5,
+        "y": 48.5
+      },
+      {
+        "h": 39,
+        "text": "price",
+        "w": 65,
+        "x": 447.6,
+        "y": 48.5
+      },
+      {
+        "h": 37.4,
+        "text": "Select all safe",
+        "w": 162.6,
+        "x": 626.9,
+        "y": 4649.2
+      },
+      {
+        "h": 35.6,
+        "text": "Clear",
+        "w": 78.7,
+        "x": 798.7,
+        "y": 4647.4
+      },
+      {
+        "h": 42.4,
+        "text": "Scan only",
+        "w": 113.8,
+        "x": 231.1,
+        "y": 9302.4
+      },
+      {
+        "h": 42.7,
+        "text": "All modules",
+        "w": 131.7,
+        "x": 350,
+        "y": 9305.9
+      },
+      {
+        "h": 42.4,
+        "text": "Node + uv",
+        "w": 113.8,
+        "x": 486.9,
+        "y": 9308.8
+      },
+      {
+        "h": 42.7,
+        "text": "Xcode + Mac",
+        "w": 131.7,
+        "x": 605.8,
+        "y": 9311.3
+      },
+      {
+        "h": 42.4,
+        "text": "Local GUI",
+        "w": 113.8,
+        "x": 230.1,
+        "y": 9349.4
+      },
+      {
+        "h": 41.5,
+        "text": "Copy",
+        "w": 72.8,
+        "x": 703.6,
+        "y": 9426.3
+      },
+      {
+        "h": 41,
+        "text": "GitHub",
+        "w": 58,
+        "x": 250.6,
+        "y": 9767.8
+      },
+      {
+        "h": 41,
+        "text": "MIT license (CLI)",
+        "w": 156.9,
+        "x": 336.6,
+        "y": 9767.8
+      },
+      {
+        "h": 41,
+        "text": "Safety guarantees",
+        "w": 156.9,
+        "x": 521.5,
+        "y": 9767.8
+      },
+      {
+        "h": 41,
+        "text": "Support",
+        "w": 67,
+        "x": 706.4,
+        "y": 9767.8
+      }
+    ]
+  },
+  {
+    "viewport": [
+      1440,
+      960
+    ],
+    "documentWidth": 1440,
+    "overflow": [],
+    "clippedText": [
+      {
+        "client": 155,
+        "scroll": 161,
+        "text": "DevPurge"
+      }
+    ],
+    "controlsBelow44": [
+      {
+        "h": 42,
+        "text": "how",
+        "w": 47.6,
+        "x": 313.2,
+        "y": 53.7
+      },
+      {
+        "h": 42,
+        "text": "try it",
+        "w": 87.2,
+        "x": 403.9,
+        "y": 53.7
+      },
+      {
+        "h": 42,
+        "text": "safe",
+        "w": 60.8,
+        "x": 534.3,
+        "y": 53.7
+      },
+      {
+        "h": 42,
+        "text": "price",
+        "w": 74,
+        "x": 638.2,
+        "y": 53.7
+      },
+      {
+        "h": 37.4,
+        "text": "Select all safe",
+        "w": 162.6,
+        "x": 927.6,
+        "y": 3896.1
+      },
+      {
+        "h": 35.6,
+        "text": "Clear",
+        "w": 78.7,
+        "x": 1099.4,
+        "y": 3894.2
+      },
+      {
+        "h": 42.4,
+        "text": "Scan only",
+        "w": 113.8,
+        "x": 860.7,
+        "y": 7263.2
+      },
+      {
+        "h": 42.7,
+        "text": "All modules",
+        "w": 131.7,
+        "x": 979.6,
+        "y": 7266.7
+      },
+      {
+        "h": 42.4,
+        "text": "Node + uv",
+        "w": 113.8,
+        "x": 1116.6,
+        "y": 7269.5
+      },
+      {
+        "h": 42.7,
+        "text": "Xcode + Mac",
+        "w": 131.7,
+        "x": 859.8,
+        "y": 7310.2
+      },
+      {
+        "h": 42.4,
+        "text": "Local GUI",
+        "w": 113.8,
+        "x": 996.7,
+        "y": 7313
+      },
+      {
+        "h": 41.5,
+        "text": "Copy",
+        "w": 72.8,
+        "x": 1251.6,
+        "y": 7385.4
+      },
+      {
+        "h": 41,
+        "text": "GitHub",
+        "w": 58,
+        "x": 458.6,
+        "y": 7865.1
+      },
+      {
+        "h": 41,
+        "text": "MIT license (CLI)",
+        "w": 156.9,
+        "x": 544.6,
+        "y": 7865.1
+      },
+      {
+        "h": 41,
+        "text": "Safety guarantees",
+        "w": 156.9,
+        "x": 729.5,
+        "y": 7865.1
+      },
+      {
+        "h": 41,
+        "text": "Support",
+        "w": 67,
+        "x": 914.4,
+        "y": 7865.1
+      }
+    ]
+  }
+]

@@ -32,6 +32,8 @@ body {
 img { display: block; max-width: 100%; height: auto; }
 button { font: inherit; color: inherit; }
 a { color: inherit; }
+button, a, summary { touch-action: manipulation; }
+button { -webkit-user-select: none; user-select: none; }
 .defs { position: absolute; width: 0; height: 0; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .skip { position: absolute; left: 12px; top: -60px; z-index: 100; background: var(--ink); color: var(--paper); padding: 10px 14px; }
@@ -657,10 +659,12 @@ html[data-palette="ember"] .swatch {
   cursor: pointer;
   transition: transform .15s var(--ease-pop), background-color .15s;
 }
-.chip-btn:hover {
-  transform: translateY(-2px);
-  background: var(--yellow);
-  color: var(--on-yellow, #141414);
+@media (hover: hover) and (pointer: fine) {
+  .chip-btn:hover {
+    transform: translateY(-2px);
+    background: var(--yellow);
+    color: var(--on-yellow, #141414);
+  }
 }
 
 /* ----- responsive additions ----- */
@@ -844,9 +848,11 @@ html[data-palette="ember"] .swatch {
   cursor: pointer;
   transition: transform 0.14s var(--ease-pop);
 }
-.cli-box__copy:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 3px 3px 0 var(--ink);
+@media (hover: hover) and (pointer: fine) {
+  .cli-box__copy:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
 }
 .cli-card__note {
   margin: 10px 0 0;
@@ -1077,3 +1083,56 @@ html[data-palette="ember"] .proof__list strong { color: var(--paper); }
 .faq__grid > .qa:last-child:nth-child(odd) { grid-column: 1 / -1; }
 /* License button is parked until the store goes live: dimmed but still readable. */
 .btn--ghost:disabled { opacity: .72; cursor: not-allowed; box-shadow: none; transform: none; }
+
+/* Phone layout: reserve explicit nav columns instead of wrapping the download
+   onto a third row, and keep tap targets full-size after the nav compacts. */
+@media (max-width: 860px) {
+  .nav-wrap {
+    padding-top: max(16px, env(safe-area-inset-top, 0px));
+    padding-left: max(clamp(16px, 4vw, 60px), env(safe-area-inset-left, 0px));
+    padding-right: max(clamp(16px, 4vw, 60px), env(safe-area-inset-right, 0px));
+  }
+  .nav { display: grid; grid-template-columns: minmax(0, 1fr) 44px auto; column-gap: 8px; }
+  .nav .logo { grid-column: 1; grid-row: 1; justify-self: start; min-height: 44px; display: flex; align-items: center; }
+  .nav .palette { grid-column: 2; grid-row: 1; margin-left: 0; }
+  .nav > .btn { grid-column: 3; grid-row: 1; }
+  .nav ul { grid-column: 1 / -1; grid-row: 2; order: 0; gap: 4px; }
+  .nav ul a { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; }
+  .nav-wrap.is-scrolled .nav { transform: none; }
+  main > section {
+    padding-left: max(clamp(16px, 4vw, 60px), env(safe-area-inset-left, 0px));
+    padding-right: max(clamp(16px, 4vw, 60px), env(safe-area-inset-right, 0px));
+  }
+  .cli-mode, .cli-box__copy, .chip-btn { min-height: 44px; }
+  .foot a { min-height: 44px; display: inline-flex; align-items: center; }
+  .foot { padding-bottom: calc(26px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 560px) {
+  .nav > .btn { padding-inline: 12px; }
+  .tagline { margin-left: 0; padding: 14px 16px 16px; }
+  .cta-row { gap: 12px; }
+  .cta-row > .btn { width: 100%; text-align: center; }
+  .btn--ghost { font-size: 20px; white-space: normal; }
+  .never { margin-left: 0; line-height: 1.6; }
+  .hero__art { margin-top: 28px; }
+  /* The rotated receipt is narrower than the page; its second action must
+     participate in layout rather than extend past the right-hand edge. */
+  .receipt-wrap { margin: 0 8px; }
+  .get__buy { position: relative; inset: auto; margin-top: 24px; transform: none; }
+  .get__buy > .btn { width: 100%; padding-inline: 12px; }
+  .get__buy span { font-size: 16px; }
+  .get__inner { gap: 56px; }
+  .get { padding-bottom: 72px; }
+  .cli-box { min-width: 0; }
+  .cli-box__code { min-width: 0; max-width: 100%; }
+}
+/* Touch gets press feedback without inheriting a sticky desktop hover. */
+@media (hover: none), (pointer: coarse) {
+  .nav ul a, .cli-mode, .cli-box__copy, .chip-btn { min-width: 44px; min-height: 44px; }
+  .chip-btn:active, .cli-box__copy:active { background: var(--yellow); box-shadow: none; }
+  .btn:not(:disabled):active, .palette__toggle:active { opacity: .8; }
+}
+/* A sticky two-row header consumes too much of a phone's landscape viewport. */
+@media (max-width: 1024px) and (max-height: 500px) {
+  .nav-wrap { position: relative; }
+}

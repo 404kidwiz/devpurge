@@ -12,6 +12,9 @@
   const palettePop = paletteMenu?.querySelector('.palette__pop');
   const applyPalette = (id) => {
     document.documentElement.dataset.palette = id;
+    // Match mobile browser chrome to the selected paper colour.
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content',
+      getComputedStyle(document.documentElement).getPropertyValue('--paper').trim());
     swatches.forEach((btn) => {
       const on = btn.dataset.setPalette === id;
       btn.setAttribute('aria-pressed', String(on));
