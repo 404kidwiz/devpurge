@@ -1,5 +1,7 @@
 # DevPurge
 
+![DevPurge — Clean out the junk drawer. A cobalt laptop sends cache folders into a wastebasket on a cream, pink and yellow collage.](docs/assets/devpurge-repository-cover-v1.jpg)
+
 **Reclaim gigabytes of developer caches without deleting anything you'll miss.**
 
 Scan first, review every path, and DevPurge skips anything that's running or open.
