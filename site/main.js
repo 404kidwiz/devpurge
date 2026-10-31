@@ -254,6 +254,38 @@
     clearTimeout(hide); hide = setTimeout(() => toast.classList.remove('is-on'), 3200);
   });
 
+  // Phone-to-Mac handoff: success is reported only after a confirmed copy.
+  const downloadCopy = document.querySelector('[data-download-copy]');
+  const downloadStatus = document.querySelector('[data-download-status]');
+  const downloadFallback = document.querySelector('[data-download-fallback]');
+  const downloadLink = document.querySelector('#download-link');
+  const macDownload = document.querySelector('[data-mac-download]');
+  if (downloadCopy && downloadStatus && downloadFallback && downloadLink && macDownload) {
+    downloadCopy.hidden = false;
+    downloadLink.value = macDownload.href;
+    downloadCopy.addEventListener('click', async () => {
+      downloadCopy.disabled = true;
+      downloadStatus.textContent = '';
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(macDownload.href);
+        copied = true;
+      } catch {
+        downloadFallback.hidden = false;
+        downloadLink.focus();
+        downloadLink.select();
+        downloadLink.setSelectionRange(0, downloadLink.value.length);
+        try { copied = document.execCommand('copy'); } catch { /* Manual copy remains available. */ }
+      }
+      downloadFallback.hidden = copied;
+      downloadStatus.textContent = copied
+        ? 'Link copied. Save it somewhere you can open on your Mac.'
+        : 'Automatic copy is unavailable. Copy the selected link below.';
+      downloadCopy.disabled = false;
+      if (copied) downloadCopy.focus({ preventScroll: true });
+    });
+  }
+
   // Interactive CLI Command Builder & Copy Stamp.
   const cliModes = [...document.querySelectorAll('[data-cli-cmd]')];
   const cliOutput = document.querySelector('[data-cli-output]');

@@ -66,7 +66,7 @@
         </button>
       </div>
     </div>
-    <a class="btn btn--pink btn--sm" href="https://github.com/404kidwiz/devpurge-releases/releases/download/v3.3.1/DevPurge-3.3.1.dmg" aria-label="Download free: DevPurge for macOS">Download<span class="nav-free">free</span></a>
+    <a class="btn btn--pink btn--sm" href="https://github.com/404kidwiz/devpurge-releases/releases/download/v3.3.1/DevPurge-3.3.1.dmg" aria-label="Download for Mac">Download<span class="nav-free">for Mac</span></a>
   </nav>
 </header>
 
@@ -102,7 +102,20 @@
     </h1>
     <p class="tagline torn" data-reveal style="--d:480ms;--r:-.6deg"><span>Scan first. Review every path. Nothing leaves your Mac.</span></p>
     <div class="cta-row" data-reveal style="--d:560ms;--r:0deg">
-      <a class="btn btn--pink btn--lg" href="https://github.com/404kidwiz/devpurge-releases/releases/download/v3.3.1/DevPurge-3.3.1.dmg" aria-label="Download free: DevPurge 3.3.1 for macOS">Download free</a>
+      <div class="download-offer">
+        <a class="btn btn--pink btn--lg" data-mac-download href="https://github.com/404kidwiz/devpurge-releases/releases/download/v3.3.1/DevPurge-3.3.1.dmg" aria-describedby="download-terms">Download for Mac</a>
+        <p id="download-terms" class="download-terms"><span>macOS 14+</span> · <span>Unlimited scans</span> · <span>3 free cleanups</span></p>
+        <div class="download-handoff">
+          <p>On your phone? Save the link for your Mac.</p>
+          <button type="button" class="download-copy" data-download-copy hidden>Copy download link <span aria-hidden="true">↗</span></button>
+          <p class="download-status" data-download-status role="status" aria-live="polite" aria-atomic="true"></p>
+          <div data-download-fallback hidden>
+            <label for="download-link">Download link — select and copy:</label>
+            <input id="download-link" type="url" readonly spellcheck="false" autocomplete="off" value="https://github.com/404kidwiz/devpurge-releases/releases/download/v3.3.1/DevPurge-3.3.1.dmg">
+          </div>
+          <noscript><p>Touch and hold “Download for Mac” to copy its link.</p></noscript>
+        </div>
+      </div>
       <!-- LICENSE-SOON-BEGIN: delete this block and uncomment the link below once the Lemon Squeezy store is live -->
       <button type="button" class="btn btn--ghost" disabled aria-disabled="true">License · coming soon</button>
       <!-- LICENSE-SOON-END -->
@@ -156,6 +169,16 @@
       <figcaption>Real DevPurge screens, sample data.</figcaption>
     </figure>
   </div>
+  <details class="demo-guide">
+    <summary>Read the walkthrough — including Put Back</summary>
+    <ol>
+      <li><strong>Scan.</strong> DevPurge lists supported caches and their sizes. Scanning does not remove files.</li>
+      <li><strong>Review.</strong> Select the items you want to clean, then check every path in the review sheet. Leave anything you are unsure about unselected.</li>
+      <li><strong>Trash.</strong> Keep “Move files to Trash” selected and confirm. Check the result for each item; anything skipped stays where it was.</li>
+      <li><strong>Put Back.</strong> Open Trash in Finder, select the item, then choose File → Put Back to restore it to its original location. This applies to items still in Trash, not permanently deleted files.</li>
+    </ol>
+    <p>Files in Trash still use storage until Trash is emptied. Keep them there until you know you no longer need them.</p>
+  </details>
 </section>
 
 <!-- 1d · FIELD TEST: measured run, numbers from launch-test-2026-10-21/marketing -->

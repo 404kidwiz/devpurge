@@ -1020,6 +1020,11 @@ html[data-palette="ember"] .palette__toggle { border-color: rgba(246, 239, 224, 
 .demo__window[data-step="3"] .demo__shot--scan { opacity: 0; }
 .demo__window[data-step="3"] .demo__shot--done { opacity: 1; transform: translateY(-50%); }
 .demo__window figcaption { margin-top: 8px; font-size: 14px; text-align: right; color: var(--ink); }
+.demo-guide { max-width: 900px; margin: 36px auto 0; padding: 18px 22px; border: 2px solid var(--ink); border-radius: 6px; background: var(--card); color: var(--ink); }
+.demo-guide summary { min-height: 44px; padding-block: 10px; cursor: pointer; font-weight: 700; }
+.demo-guide ol { padding-left: 24px; }
+.demo-guide li + li { margin-top: 14px; }
+.demo-guide li, .demo-guide p { font-size: 16px; line-height: 1.6; }
 @media (hover: hover) {
   .demo__step:hover { transform: rotate(-1deg) translateX(4px); }
 }
@@ -1083,6 +1088,23 @@ html[data-palette="ember"] .proof__list strong { color: var(--paper); }
 .faq__grid > .qa:last-child:nth-child(odd) { grid-column: 1 / -1; }
 /* License button is parked until the store goes live: dimmed but still readable. */
 .btn--ghost:disabled { opacity: .72; cursor: not-allowed; box-shadow: none; transform: none; }
+
+/* Keep the offer, requirements and phone handoff together as one decision. */
+.download-offer { width: 100%; min-width: 0; }
+.download-terms { max-width: 38ch; margin: 14px 0 0; font-size: 16px; line-height: 1.5; }
+.download-terms span { white-space: nowrap; }
+.download-handoff { display: none; margin-top: 16px; padding: 16px; border: 2px dashed var(--ink); background: var(--card); color: var(--ink); border-radius: 5px; }
+.download-handoff p { margin: 0; font-size: 15px; line-height: 1.45; }
+.download-copy { min-height: 44px; margin-top: 6px; padding: 8px 0; border: 0; border-bottom: 3px solid var(--pink); background: transparent; color: inherit; font: 700 16px/1.4 var(--type); cursor: pointer; text-align: left; }
+.download-copy span { margin-left: 8px; }
+.download-handoff .download-status:not(:empty) { margin-top: 10px; }
+[data-download-fallback] { margin-top: 12px; font-size: 15px; }
+#download-link { display: block; box-sizing: border-box; width: 100%; min-height: 44px; margin-top: 6px; padding: 10px; border: 2px solid var(--ink); border-radius: 3px; color: var(--ink); background: var(--paper); font: 400 16px/1.4 var(--type); }
+@media (max-width: 860px), (pointer: coarse) { .download-handoff { display: block; } }
+@media (max-width: 860px) { .nav-free { display: none; } }
+@media (max-width: 560px) {
+  .download-offer > .btn { width: 100%; padding-inline: 12px; text-align: center; font-size: clamp(26px, 7.7vw, 38px); }
+}
 
 /* Phone layout: reserve explicit nav columns instead of wrapping the download
    onto a third row, and keep tap targets full-size after the nav compacts. */

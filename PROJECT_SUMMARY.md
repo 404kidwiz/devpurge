@@ -1,6 +1,6 @@
 # DevPurge project summary
 
-Updated: 2026-10-19
+Updated: 2026-10-30
 
 ## Current behavior
 
@@ -329,6 +329,50 @@ Round 2 of `site/` (Zine): added hero CTA, FAQ, refund/footer links, favicon and
 ### Mac app: Zine restyle with 4 palettes
 
 The SwiftUI app (`mac/`) now matches the Zine site: sticky-note metrics, paper inventory rows with SAFE / IN USE stamps, a receipt-style review sheet, a "Space back." result card and a matching menu-bar popover. Fonts are Lilita One and Courier Prime (OFL, `mac/Resources/Fonts`, copied into the app bundle by `scripts/build_mac_app.sh`). Four palettes, picked from the Palette menu, Settings (Cmd-,) or the popover swatches, saved per Mac: Zine and Citrus (light), Blacklight and Ember (dark). `Theme.swift` holds semantic tokens; views never use raw colours. `PaletteSnapshotTests` checks WCAG contrast for every palette and, with `DEVPURGE_SNAPSHOT_DIR` set, writes screenshots of each screen per palette. The cleanup result now reports Trash moves ("in the Trash, empty to free") separately from measured freed space. Screenshots are in `design-directions/zine-app-build/`. Not yet checked by hand in the running app.
+
+## Prioritized launch follow-ups (2026-10-30)
+
+Status below distinguishes completed work from remaining acceptance. Lemon Squeezy
+activation remains a separate dependency; keep license purchases disabled until
+approval and live checkout/license verification. The advisory conversion-readiness
+assessment was 76/100 (moderate), based on page review and existing verification,
+not measured conversion data. Prioritize trust and download clarity over another
+visual redesign.
+
+1. [ ] **Developer ID signing and Apple notarization — first priority.** Confirm
+   Apple Developer enrollment and availability of a Developer ID Application
+   certificate, then use `scripts/release_mac.sh` to sign, notarize and staple the
+   release. Verify a fresh browser download opens normally on another Mac with
+   Gatekeeper enabled. Replace the current not-notarized FAQ guidance only after
+   the distributed release passes this check. This is independent of store approval.
+2. [x] **Clarify the download offer near the primary action.** Hero now says
+   "Download for Mac", followed immediately by "macOS 14+ · Unlimited scans · 3 free
+   cleanups". App bundle minimum is 14.0; production license configuration allows
+   three free cleanups and scanning does not consume them. All four palettes and
+   eight viewport sizes passed layout checks; laptop remains beside the headline.
+3. [x] **Add a mobile-to-Mac handoff.** Narrow screens and coarse-pointer devices
+   get "Copy download link" while the direct Mac download stays available. Copy
+   succeeds through the Clipboard API or a checked legacy fallback; otherwise a
+   selected, labelled URL field remains visible for manual copying. A polite live
+   region reports the result. Real browser clipboard bytes, denied/throwing API
+   cases, keyboard use and no-JS fallback passed. The link matches the uploaded
+   v3.3.1 DMG in the public GitHub release.
+4. [ ] **Physical-device and accessibility acceptance — partial.** Keyboard checks
+   passed for the palette menu, walkthrough tabs, sample review, FAQ and download
+   handoff. Reduced-motion and 32 emulated palette/viewport cases passed. Native
+   BrowserOS accessibility inspection exposes the new offer, copy control and
+   text guide. VoiceOver speech was not verified: native attachment timed out.
+   An iPhone 14 Pro Max (iOS 26.6.1) is paired, but its developer disk image could
+   not mount and Mirroring requires initial setup. Android hardware is unavailable
+   through the current tools. Actual iPhone Safari, Android Chrome and VoiceOver
+   acceptance remain open; see `docs/launch-followups-qa.md`.
+5. [ ] **Product proof — text guide complete; real recording blocked.** Added an
+   accessible, keyboard-operated Scan → Review → Trash → Put Back explanation
+   below the existing screenshot walkthrough, including Trash storage/recovery
+   limits. Native DevPurge attachment repeatedly returned `timeoutReached`,
+   including after the user opened the dashboard; no files were cleaned and no
+   recording was fabricated. Capture an actual safe-fixture run when control is
+   restored. Genuine beta quotes remain pending supplied quotes and permission.
 
 ## Landing page critique fixes (2026-10-29)
 
