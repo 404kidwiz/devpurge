@@ -1,6 +1,23 @@
 # DevPurge project summary
 
-Updated: 2026-10-30
+Updated: 2026-10-31
+
+## Mac app icon refresh (2026-10-31)
+
+Replaced the limestone `d/` icon with a Zine paper-cut D using the app's licensed
+Lilita One face and pink, lime, cobalt and paper colors. The deterministic source
+is `scripts/generate_app_icon.py`; the 1024px master is
+`mac/Resources/AppIcon.png`, and `AppIcon.icns` contains all ten standard
+representations from 16px through 1024px. Existing builds consume this ICNS.
+
+Applied to both local app copies (repository and Desktop) without replacing their
+executables with a different version. Both were already ad-hoc signed and were
+re-signed after the resource change; strict signature verification passed.
+LaunchServices was refreshed, and macOS's resolved Desktop-app icon was inspected
+and matches the new artwork. Light/dark size checks and deterministic ICNS
+round-trip checks passed. Existing app copies were backed up before modification.
+The public DMG has not been replaced; this is a local icon/source update, not a
+new signed or notarized release. Details: `docs/mac-icon.md`.
 
 ## Current behavior
 

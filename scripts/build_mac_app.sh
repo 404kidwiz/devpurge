@@ -4,7 +4,12 @@ set -eo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 APP_NAME="DevPurge"
-BUNDLE="$ROOT_DIR/$APP_NAME.app"
+BUNDLE="${APP_BUNDLE_PATH:-$ROOT_DIR/$APP_NAME.app}"
+# Isolated release builds must still target a DevPurge app bundle, never a parent folder.
+case "$BUNDLE" in
+  /*/DevPurge.app) ;;
+  *) echo "APP_BUNDLE_PATH must be an absolute path ending in /DevPurge.app" >&2; exit 1 ;;
+esac
 CONTENTS="$BUNDLE/Contents"
 MACOS_DIR="$CONTENTS/MacOS"
 RESOURCES_DIR="$CONTENTS/Resources"
@@ -55,9 +60,9 @@ cat << 'EOF' > "$CONTENTS/Info.plist"
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>3.3.1</string>
+    <string>3.3.2</string>
     <key>CFBundleVersion</key>
-    <string>2</string>
+    <string>3</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
     <key>NSHighResolutionCapable</key>
@@ -77,11 +82,12 @@ echo -n "APPL????" > "$CONTENTS/PkgInfo"
 
 # Ad-hoc sign for local execution
 echo "==> Applying local code signature..."
-codesign --force --deep -s - "$BUNDLE" 2>/dev/null || true
+codesign --force --deep -s - "$BUNDLE"
+codesign --verify --deep --strict "$BUNDLE"
 
 # Refresh LaunchServices and touch bundle for Finder / Dock icon recognition
 LSREGISTER=$(find /System/Library/Frameworks/CoreServices.framework -name lsregister 2>/dev/null | head -n 1)
-if [ -n "$LSREGISTER" ]; then
+if [ -n "$LSREGISTER" ] && [ "$BUNDLE" = "$ROOT_DIR/$APP_NAME.app" ]; then
   "$LSREGISTER" -f "$BUNDLE" 2>/dev/null || true
 fi
 touch "$BUNDLE"

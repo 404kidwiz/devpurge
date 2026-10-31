@@ -10,8 +10,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-VERSION="${VERSION:-3.3.1}"
-APP="$ROOT_DIR/DevPurge.app"
+VERSION="${VERSION:-3.3.2}"
+APP="${APP_BUNDLE_PATH:-$ROOT_DIR/DevPurge.app}"
 DIST="$ROOT_DIR/dist"
 DMG="$DIST/DevPurge-$VERSION.dmg"
 
